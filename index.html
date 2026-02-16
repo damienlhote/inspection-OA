@@ -417,61 +417,6 @@ let chatMessages = [
 ];
 let chatLoading = false;
 
-// ─── AI SYSTEM PROMPT ───
-const AI_SYSTEM_PROMPT = `Tu es OA Expert IA, un assistant spécialisé de haut niveau en inspection, maintenance et réparation d'ouvrages d'art (ponts, viaducs, passerelles, tunnels, murs de soutènement).
-
-DOMAINES D'EXPERTISE :
-- Inspection détaillée (PVID, IDP, VST) selon ITSEOA et IN 1256 SNCF Réseau
-- Cotation IQOA (routier) et IN 1260 (ferroviaire)
-- Pathologies des structures : fissuration, corrosion, fatigue, flambement, écaillage béton, décollement peinture
-- Réparation : rivetage à chaud, remplacement d'appareils d'appui, renforcement par tôles, béton projeté, précontrainte extérieure
-- Protection anticorrosion selon ISO 12944, Fascicule 56 CCTG, IN 00036 SNCF
-- Calculs selon Eurocodes (EN 1991, 1992, 1993) et normes NF
-- Rédaction de mémoires techniques pour appels d'offres
-- Planning de travaux avec contraintes d'exploitation ferroviaire (ITC, ralentissements) et routière (basculements)
-
-BASE NORMATIVE INTÉGRÉE :
-ITSEOA : Fascicules 0 (dispositions générales), 2 (maçonnerie), 3 (béton/fondations), 10 (poutrelles enrobées), 11 (ponts métalliques), 12 (haubans/suspendus), 13 (bois), 21 (appareils d'appui), 32 (murs soutènement), 40 (tunnels)
-CEREMA : Guides IQOA ponts et murs, guide protection anticorrosion, guide fatigue, dalles orthotropes, surveillance et entretien courant
-SNCF Réseau : IN 1256 (surveillance OA), IN 1260 (cotation désordres), IN 1130 (sécurité travaux), IN 2089 (pose voie sur OA), IN 3937 (formation), IN 7012/IN 00035 (réparations ponts métalliques RPM), IN 00036 (protection anticorrosion), MT 1253 (surveillance)
-SETRA : Appareils d'appui élastomère, précontrainte extérieure, joints de chaussée
-LCPC : Bétons projetés, diagnostic béton, auscultation CND
-CETU : Dossier pilote tunnels, diagnostic tunnels
-IMGC : Instruction ministérielle gestion patrimoine
-STRRES : RECO N°4 réparation et renforcement
-Eurocodes : EN 1090-2, EN 1504, EN 1991/1992/1993, ISO 12944, ISO 8501-1
-CCTG : Fascicules 56 (anticorrosion), 65 (béton armé), 66 (ouvrages métalliques)
-
-OUVRAGES SUIVIS SUR LA PLATEFORME :
-1. Pont de Pontorson (PK 342+120) – Pont-rail métallique – IQOA 3U – 12 avaries – Ferroviaire
-2. Viaduc de la Sioule (A89) – Viaduc routier mixte – IQOA 2E – 8 avaries – Routier
-3. Pont Long Biên (Hanoï) – Pont métallique historique – IQOA 3U – 47 avaries – International
-4. Passerelle de Rosny-sous-Bois – Passerelle métallique – IQOA 2 – 6 avaries – Ferroviaire
-5. Pont de Neufchelles (PK 68+450) – Pont-rail béton – IQOA 2E – 4 avaries – Ferroviaire
-
-DÉSORDRES ACTIFS :
-- Pontorson : Fissure de fatigue poutre PG (3U, 1.02mm, progression +410%), Corrosion rivets cornière d'âme (2E, 35% surface)
-- Sioule : Écaillage béton dalle BA (2, 1.2m²)
-- Long Biên : Flambement local travée 5 (3U, 12mm)
-- Rosny : Déformation garde-corps (2E, 8mm)
-
-ÉQUIPE :
-- Damien LHOTE (Chef de projet OA, administrateur)
-- Louis AURIER (Inspecteur OA)
-- Hamza OUABDEL MOUMEN (Inspecteur OA)
-- Dalila SEGMANE (Inspecteur OA)
-
-RÈGLES DE RÉPONSE :
-- Réponds toujours en français professionnel technique
-- Cite systématiquement les références normatives applicables
-- Structure tes réponses clairement
-- Pour les rapports et documents, propose une structure détaillée avec les rubriques attendues
-- Pour les questions sur les désordres, inclus l'analyse pathologique, les causes probables et les préconisations
-- Adapte le référentiel normatif au client (ferroviaire = SNCF/IMGC, routier = CEREMA/SETRA/ITSEOA, tunnels = CETU)
-- Tu peux utiliser le formatage Markdown (gras, listes, titres)
-- Sois précis, concret et opérationnel dans tes réponses`;
-
-
 // ═══════════════════════════════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════════════════════════════
@@ -935,11 +880,11 @@ function renderAI() {
     <div class="card" style="flex:1;overflow:auto;margin-bottom:0;display:flex;flex-direction:column">
       <div class="chat-messages" id="chat-messages" role="log" aria-label="Messages de conversation" aria-live="polite">
         ${chatMessages.map(m=>`<div class="chat-msg ${m.role}" style="align-self:${m.role==='user'?'flex-end':'flex-start'}" role="article" aria-label="${m.role==='ai'?'Réponse de l\'assistant':'Votre message'}">
-          ${m.role==='ai'?'<div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 OA Expert IA</div>':''}
+          ${m.role==='ai'?'<div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 Copilot</div>':''}
           ${m.content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}
         </div>`).join('')}
         ${chatLoading?`<div class="chat-msg ai" style="align-self:flex-start" aria-label="L'assistant réfléchit">
-          <div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 OA Expert IA</div>
+          <div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 Copilot</div>
           <div style="display:flex;align-items:center;gap:8px">
             <span class="pulse" style="display:inline-flex;gap:4px">
               <span style="width:6px;height:6px;border-radius:3px;background:var(--pri);display:inline-block"></span>
@@ -969,13 +914,24 @@ function attachChatEvents() {
 }
 async function sendChat() {
   const el = document.getElementById('chat-input');
-  if(!el || !el.value.trim() || chatLoading) return;
+  if(!el||!el.value.trim()||chatLoading) return;
   const msg = el.value.trim();
-  chatMessages.push({role:'user', content: msg});
-  el.value=''; chatLoading = true; renderModule();
-  chatMessages.push({role:'ai', content: '⚡ Mode Copilot activé. En attente de l'hôte…'});
-  chatLoading = false; renderModule();
-}
+  chatMessages.push({role:'user',content:msg});
+  el.value = '';
+  chatLoading = true;
+  renderModule();
+
+  const apiKey = getApiKey();
+
+  // If no API key configured, show helpful message
+  if (!apiKey) {
+    chatMessages.push({role:'ai', content:
+      '⚠️ **Clé API non configurée**\n\nPour activer l\'assistant IA, demandez à l\'administrateur de configurer la clé API Anthropic dans le module **Administration** → **Configuration de l\'Assistant IA**.\n\nEn attendant, je peux vous orienter vers les modules de la plateforme :\n• **Base normative** — Recherche dans les ' + NORMS_DB.length + ' références\n• **Désordres** — Suivi de l\'évolution des avaries\n• **Documents** — Modèles de PVID, expertises, mémoires'
+    });
+    chatLoading = false;
+    renderModule();
+    return;
+  }
 
   try {
     // Build API conversation history (skip the initial greeting)
@@ -1159,46 +1115,43 @@ function renderAdmin() {
         <div id="admin-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px"></div>
       </div>
     </div>
-    <div class="card" style="border-top:3px solid var(--pri)">
-      <div class="card-title">🤖 Configuration de l'Assistant IA</div>
-      <div class="c-m fs13" style="margin-bottom:16px">Configurez la connexion à l'API Anthropic (Claude) pour activer l'assistant IA. La clé est stockée uniquement dans votre navigateur.</div>
-      <div class="grid-2" style="gap:12px">
-        <div>
-          <label for="api-key-input" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Clé API Anthropic</label>
-          <div style="position:relative">
-            <input class="input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." value="" style="font-family:var(--mono);padding-right:70px">
-            <button class="btn btn-ghost btn-sm" onclick="toggleApiKeyVisibility()" id="api-key-toggle" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 8px;font-size:11px;min-height:auto">👁️ Voir</button>
-          </div>
-          <div class="fs11 c-m" style="margin-top:4px" id="api-key-status">${getApiKey()?'✅ Clé enregistrée (masquée pour sécurité)':'❌ Aucune clé configurée'}</div>
-        </div>
-        <div>
-          <label for="api-model-select" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Modèle IA</label>
-          <select class="input" id="api-model-select">
-            <option value="claude-sonnet-4-20250514" ${getApiModel()==='claude-sonnet-4-20250514'?'selected':''}>Claude Sonnet 4 (rapide, recommandé)</option>
-            <option value="claude-opus-4-6" ${getApiModel()==='claude-opus-4-6'?'selected':''}>Claude Opus 4.6 (avancé)</option>
-          </select>
-        </div>
-      </div>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-pri" onclick="saveApiConfig()">💾 Enregistrer</button>
-        <button class="btn btn-ghost" onclick="testApiConnection()">🔌 Tester la connexion</button>
-        <button class="btn btn-sm" style="background:var(--err-g);color:var(--err);border:none" onclick="deleteApiKey()">🗑️ Supprimer la clé</button>
-        <span id="api-status" class="fs12"></span>
-      </div>
-      <div id="api-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px"></div>
-      <div style="margin-top:16px;padding:12px;background:var(--pri-g);border-radius:8px;border:1px solid rgba(59,130,246,0.2)">
-        <div class="fs12 fw700 c-pri" style="margin-bottom:6px">💡 Comment obtenir une clé API ?</div>
-        <div class="fs12 c-m" style="line-height:1.8">
-          1. Rendez-vous sur <strong>console.anthropic.com</strong><br>
-          2. Créez un compte ou connectez-vous<br>
-          3. Allez dans <strong>API Keys</strong> → <strong>Create Key</strong><br>
-          4. Copiez la clé et collez-la ci-dessus<br>
-          5. Crédit offert : 5$ pour les nouveaux comptes
-        </div>
+ <div class="card" style="border-top:3px solid var(--pri)">
+  <div class="card-title">⚡ Intégration Copilot (GitHub / Hôte)</div>
+  <div class="c-m fs13" style="margin-bottom:16px">
+    L'assistant IA utilise <strong>M365 Copilot</strong> via :
+    <br>• un <strong>hôte</strong> (SharePoint / add-in) qui relaie les messages (<code>postMessage</code>), ou
+    <br>• un <strong>endpoint</strong> (API proxy) que vous configurez ci-dessous pour GitHub Pages.
+  </div>
+  <div class="grid-2" style="gap:12px">
+    <div>
+      <label for="copilot-endpoint" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Endpoint Copilot (optionnel)</label>
+      <input class="input" id="copilot-endpoint" placeholder="https://votre-api.exemple.com/copilot" style="font-family:var(--mono)" value="${getCopilotEndpoint()}">
+      <div class="fs11 c-m" style="margin-top:4px">Astuce : l'endpoint doit répondre en JSON : <code>{"text":"..."}</code>.</div>
+    </div>
+    <div>
+      <label class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Statut</label>
+      <div style="padding:10px 12px;border:1px solid var(--brd);border-radius:10px;background:var(--bg)">
+        <div class="fs12" id="copilot-admin-status">${(window.parent!==window && copilotConnected)?'✅ Connecté (hôte)':'⏳ En attente (GitHub : configurez un endpoint)'} </div>
+        <div class="fs11 c-d" style="margin-top:4px">Mode : ${(window.parent!==window)?'postMessage (hôte)':'endpoint (GitHub)'} </div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title">🔐 Politique de sécurité</div>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <button class="btn btn-pri" onclick="saveCopilotEndpoint()">💾 Enregistrer</button>
+    <button class="btn btn-ghost" onclick="testCopilotEndpoint()">🔌 Tester</button>
+    <button class="btn btn-sm" style="background:var(--err-g);color:var(--err);border:none" onclick="clearCopilotEndpoint()">🗑️ Effacer</button>
+    <span id="copilot-admin-msg" class="fs12"></span>
+  </div>
+  <div style="margin-top:16px;padding:12px;background:var(--pri-g);border-radius:8px;border:1px solid rgba(59,130,246,0.2)">
+    <div class="fs12 fw700 c-pri" style="margin-bottom:6px">💡 Exemple rapide d'hôte</div>
+    <div class="fs12 c-m" style="line-height:1.8">
+      L'hôte doit envoyer <code>{source:'m365-copilot',event:'copilot_ready'}</code> puis renvoyer les réponses via <code>copilot_response</code>.
+    </div>
+  </div>
+ </div>
+
+ <div class="card">
+ <div class="card-title">🔐 Politique de sécurité</div>
       <div class="grid-2">
         <div>
           <div style="padding:10px 0;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center">
@@ -1231,7 +1184,7 @@ function renderAdmin() {
   </div>`;
 }
 
-function attachAdminEvents() { /* no-op: Copilot only */ }
+function attachAdminEvents() { /* handlers are attached inline */ }
     });
     // Auto-focus helper text
     apiInput.addEventListener('focus', () => {
@@ -1347,70 +1300,6 @@ renderModule = function() {
 };
 
 // ═══════════════════════════════════════════════════════════════════
-// API CONFIGURATION
-// ═══════════════════════════════════════════════════════════════════
-}
-}
-}
-    keyInput.value = '';
-    keyInput.type = 'password';
-    const toggleBtn = document.getElementById('api-key-toggle');
-    if (toggleBtn) toggleBtn.textContent = '👁️ Voir';
-    if (statusEl) statusEl.innerHTML = '✅ Clé enregistrée (masquée pour sécurité)';
-  }
-  try { sessionStorage.setItem('oa-api-model', modelSelect.value); } catch(e) {}
-
-  if (msgEl) {
-    msgEl.style.display = 'block';
-    msgEl.style.background = key ? 'var(--ok-g)' : 'var(--acc-g)';
-    msgEl.style.color = key ? 'var(--ok)' : 'var(--acc)';
-    msgEl.style.border = '1px solid ' + (key ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)');
-    msgEl.textContent = key ? '✅ Clé API et modèle enregistrés. L\'assistant IA est prêt.' : '✅ Modèle mis à jour. (Clé inchangée)';
-    setTimeout(()=>{ msgEl.style.display='none'; }, 4000);
-  }
-}
-  const statusEl = document.getElementById('api-key-status');
-  if (statusEl) statusEl.innerHTML = '❌ Aucune clé configurée';
-  const msgEl = document.getElementById('api-msg');
-  if (msgEl) {
-    msgEl.style.display = 'block';
-    msgEl.style.background = 'var(--err-g)';
-    msgEl.style.color = 'var(--err)';
-    msgEl.style.border = '1px solid rgba(239,68,68,0.3)';
-    msgEl.textContent = '🗑️ Clé API supprimée.';
-    setTimeout(()=>{ msgEl.style.display='none'; }, 3000);
-  }
-  const input = document.getElementById('api-key-input');
-  if (input) input.value = '';
-}
-async   if (statusEl) statusEl.innerHTML = '<span style="color:var(--acc)" class="pulse">⏳ Test en cours...</span>';
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: getApiModel(),
-        max_tokens: 50,
-        messages: [{ role: 'user', content: 'Réponds uniquement "OK connecté".' }]
-      })
-    });
-    if (resp.ok) {
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--ok)">✅ Connexion réussie – Modèle : ' + getApiModel() + '</span>';
-    } else {
-      const err = await resp.json().catch(()=>({}));
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Erreur ' + resp.status + ' : ' + (err.error?.message||'Vérifiez la clé') + '</span>';
-    }
-  } catch(e) {
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Erreur réseau : ' + e.message + '</span>';
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
 // SHAREPOINT IFRAME BRIDGE & SESSION PERSISTENCE
 // ═══════════════════════════════════════════════════════════════════
 // Notify SharePoint parent frame of app state
@@ -1440,6 +1329,105 @@ if (!restoreSession()) {
   document.getElementById('login-user').focus();
 }
 notifyParent('ready', {version:'2.0'});
+
+// ======================= M365 COPILOT (GitHub compatible) — START =======================
+let copilotConnected = false;
+let copilotReqId = 0;
+let copilotPending = {};
+
+function getCopilotEndpoint() {
+  try { return localStorage.getItem('oa-copilot-endpoint') || ''; } catch(e) { return ''; }
+}
+function saveCopilotEndpoint() {
+  const el = document.getElementById('copilot-endpoint');
+  const msg = document.getElementById('copilot-admin-msg');
+  const v = (el?.value || '').trim();
+  try { localStorage.setItem('oa-copilot-endpoint', v); } catch(e) {}
+  if (msg) msg.innerHTML = v ? '<span style="color:var(--ok)">✅ Endpoint enregistré</span>' : '<span style="color:var(--acc)">ℹ️ Endpoint vide</span>';
+  setTimeout(()=>{ if(msg) msg.textContent=''; }, 2500);
+}
+function clearCopilotEndpoint() {
+  try { localStorage.removeItem('oa-copilot-endpoint'); } catch(e) {}
+  const el = document.getElementById('copilot-endpoint');
+  if (el) el.value='';
+  const msg = document.getElementById('copilot-admin-msg');
+  if (msg) msg.innerHTML = '<span style="color:var(--err)">🗑️ Endpoint effacé</span>';
+  setTimeout(()=>{ if(msg) msg.textContent=''; }, 2500);
+}
+async function testCopilotEndpoint() {
+  const msg = document.getElementById('copilot-admin-msg');
+  const endpoint = getCopilotEndpoint();
+  if (!endpoint) {
+    if (msg) msg.innerHTML = '<span style="color:var(--err)">❌ Aucun endpoint configuré</span>';
+    return;
+  }
+  if (msg) msg.innerHTML = '<span style="color:var(--acc)" class="pulse">⏳ Test…</span>';
+  try {
+    const text = await copilotAskViaEndpoint(endpoint, 'Test connexion', {module:'admin'});
+    if (msg) msg.innerHTML = '<span style="color:var(--ok)">✅ OK</span>';
+  } catch(e) {
+    if (msg) msg.innerHTML = '<span style="color:var(--err)">❌ ' + (e.message || e) + '</span>';
+  }
+  setTimeout(()=>{ if(msg) msg.textContent=''; }, 3500);
+}
+
+// Appel Copilot via endpoint (proxy) — requis sur GitHub Pages
+async function copilotAskViaEndpoint(endpoint, question, context) {
+  const resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, context })
+  });
+  if (!resp.ok) {
+    const t = await resp.text().catch(()=> '');
+    throw new Error('Endpoint ' + resp.status + (t ? ' : ' + t : ''));
+  }
+  const data = await resp.json().catch(()=> ({}));
+  return data.text || data.answer || '';
+}
+
+// Appel Copilot via postMessage (hôte)
+function copilotAsk(question, context) {
+  const id = ++copilotReqId;
+  copilotPending[id] = true;
+  notifyParent('copilot_ask', { id, question, context });
+  setTimeout(()=>{
+    if (copilotPending[id]) {
+      delete copilotPending[id];
+      chatMessages.push({role:'ai', content:'⏱️ **Délai dépassé**\n\nAucune réponse de Copilot. Sur GitHub : configurez un endpoint dans Administration.'});
+      chatLoading = false;
+      renderModule();
+    }
+  }, 20000);
+  return id;
+}
+
+// Réception réponses hôte
+window.addEventListener('message', (evt) => {
+  try{
+    const payload = evt.data || {};
+    if (payload.source !== 'm365-copilot') return;
+    if (payload.event === 'copilot_ready') {
+      copilotConnected = true;
+    } else if (payload.event === 'copilot_response') {
+      const { id, text, error } = payload.data || {};
+      if (id && copilotPending[id]) {
+        delete copilotPending[id];
+        chatMessages.push({role:'ai', content: error ? ('⚠️ **Copilot**\n\n' + error) : (text || '(réponse vide)')});
+        chatLoading = false;
+        renderModule();
+      }
+    }
+  }catch(e){}
+});
+
+// Handshake si embarqué
+(function(){
+  try {
+    if (window.parent !== window) notifyParent('copilot_handshake', {version:'1.1'});
+  } catch(e){}
+})();
+// ======================= M365 COPILOT (GitHub compatible) — END =========================
 </script>
 </body>
 </html>
