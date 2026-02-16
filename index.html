@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Security-Policy" content="frame-ancestors *;">
+<meta name="description" content="OA Expert — Plateforme IA Ouvrages d'Art — Inspections, Réparations, Normes">
+<title>OA Expert — Plateforme IA Ouvrages d'Art</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233B82F6'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-weight='900' font-family='sans-serif'>OA</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root {
+  --bg:#0B1120;--sidebar:#0F1729;--card:#141D2F;--card-h:#1A2540;
+  --brd:#1E2A45;--brd-l:#2A3A5C;
+  --pri:#3B82F6;--pri-d:#2563EB;--pri-g:rgba(59,130,246,0.15);
+  --acc:#F59E0B;--acc-d:#D97706;--acc-g:rgba(245,158,11,0.12);
+  --err:#EF4444;--err-g:rgba(239,68,68,0.12);
+  --ok:#10B981;--ok-g:rgba(16,185,129,0.12);
+  --txt:#E2E8F0;--txt-m:#8B9DC3;--txt-d:#4A5C82;
+  --ff:'DM Sans','Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--ff);background:var(--bg);color:var(--txt)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--brd-l)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B9DC3' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px!important}
+select option{background:var(--card);color:var(--txt)}
+input:focus,select:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px var(--pri-g);outline:none}
+tr{transition:background .15s}
+button{cursor:pointer;font-family:var(--ff)}
+a{color:var(--pri);text-decoration:none}
+
+/* ─── LOGIN ─── */
+#login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg);position:fixed;inset:0;z-index:9999;background-image:radial-gradient(ellipse at 30% 50%,rgba(59,130,246,0.06) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(245,158,11,0.04) 0%,transparent 50%)}
+.login-box{width:420px;padding:48px 40px;background:var(--sidebar);border:1px solid var(--brd);border-radius:20px;box-shadow:0 40px 100px rgba(0,0,0,0.5)}
+.login-logo{display:flex;align-items:center;gap:14px;margin-bottom:32px;justify-content:center}
+.login-logo-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--pri),var(--acc));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:#fff}
+.login-logo-text{font-size:24px;font-weight:800;letter-spacing:-0.5px}
+.login-logo-sub{font-size:11px;color:var(--txt-m);text-transform:uppercase;letter-spacing:2px;font-weight:600}
+.login-field{margin-bottom:18px}
+.login-field label{display:block;font-size:12px;color:var(--txt-m);margin-bottom:7px;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+.login-field input{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--brd);border-radius:10px;color:var(--txt);font-size:14px;font-family:var(--ff);transition:border .2s}
+.login-btn{width:100%;padding:13px;background:var(--pri);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;margin-top:8px;transition:all .2s;letter-spacing:.3px}
+.login-btn:hover{background:var(--pri-d);transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,0.3)}
+.login-error{display:none;background:var(--err-g);border:1px solid rgba(239,68,68,0.3);color:var(--err);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;text-align:center}
+.login-footer{text-align:center;margin-top:24px;font-size:11px;color:var(--txt-d)}
+
+/* ─── LAYOUT ─── */
+#app{display:none;height:100vh}
+.app-layout{display:flex;height:100%}
+
+/* Sidebar */
+.sidebar{width:256px;min-width:256px;background:var(--sidebar);border-right:1px solid var(--brd);display:flex;flex-direction:column;transition:width .3s,min-width .3s}
+.sidebar.collapsed{width:66px;min-width:66px}
+.sidebar-logo{padding:20px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:12px;cursor:pointer}
+.collapsed .sidebar-logo{padding:20px 14px;justify-content:center}
+.sidebar-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--pri),var(--acc));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;flex-shrink:0}
+.sidebar-logo-text{overflow:hidden;white-space:nowrap}
+.collapsed .sidebar-logo-text{display:none}
+.sidebar-nav{flex:1;padding-top:8px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;font-size:13.5px;color:var(--txt-m);border-left:3px solid transparent;transition:all .2s;white-space:nowrap;overflow:hidden}
+.nav-item:hover{color:var(--txt);background:rgba(255,255,255,0.03)}
+.nav-item.active{color:var(--pri);background:var(--pri-g);border-left-color:var(--pri);font-weight:600}
+.nav-item .nav-icon{flex-shrink:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.collapsed .nav-item{padding:10px 22px;justify-content:center}
+.collapsed .nav-item span:not(.nav-icon){display:none}
+.nav-sep{height:1px;background:var(--brd);margin:8px 18px}
+.sidebar-user{padding:14px 18px;border-top:1px solid var(--brd);display:flex;align-items:center;gap:10px}
+.collapsed .sidebar-user{justify-content:center;padding:14px}
+.sidebar-user .user-info{overflow:hidden}
+.collapsed .sidebar-user .user-info{display:none}
+.user-avatar{width:32px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0}
+
+/* Main */
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{padding:14px 28px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;background:var(--sidebar)}
+.main-header h1{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.main-header .sub{font-size:12px;color:var(--txt-m);margin-top:2px}
+.header-right{display:flex;gap:12px;align-items:center}
+.status-dot{width:7px;height:7px;border-radius:4px;display:inline-block}
+.main-content{flex:1;overflow:auto;padding:28px}
+
+/* Cards, tables, pills, buttons */
+.card{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.stat-num{font-size:28px;font-weight:800;font-family:var(--mono);line-height:1}
+.stat-label{font-size:11px;color:var(--txt-m);text-transform:uppercase;letter-spacing:1px;margin-top:6px;font-weight:600}
+.stat-sub{font-size:11px;color:var(--txt-d);margin-top:4px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-21{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--brd);color:var(--txt-m);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+td{padding:12px 14px;border-bottom:1px solid var(--brd)}
+tr.clickable{cursor:pointer}
+tr.clickable:hover{background:var(--card-h)}
+.mono{font-family:var(--mono)}
+.fw600{font-weight:600}
+.fw700{font-weight:700}
+.fs12{font-size:12px}
+.fs11{font-size:11px}
+.c-m{color:var(--txt-m)}
+.c-d{color:var(--txt-d)}
+.c-pri{color:var(--pri)}
+.c-acc{color:var(--acc)}
+.c-err{color:var(--err)}
+.c-ok{color:var(--ok)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;transition:all .2s;font-family:var(--ff)}
+.btn-pri{background:var(--pri);color:#fff}
+.btn-pri:hover{background:var(--pri-d);box-shadow:0 4px 14px rgba(59,130,246,0.25)}
+.btn-acc{background:var(--acc);color:#fff}
+.btn-err{background:var(--err);color:#fff}
+.btn-ghost{background:transparent;color:var(--txt-m);border:1px solid var(--brd)}
+.btn-ghost:hover{border-color:var(--brd-l);color:var(--txt)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
+
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:1px solid var(--brd);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--txt-m);background:transparent}
+.pill:hover{border-color:var(--brd-l);color:var(--txt)}
+.pill.active{border-color:var(--pri);background:var(--pri-g);color:var(--pri)}
+
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.5px;min-width:32px;font-family:var(--mono)}
+.badge-1{background:#065F46;color:#6EE7B7}
+.badge-2{background:#1E3A5F;color:#93C5FD}
+.badge-2e{background:#78350F;color:#FCD34D}
+.badge-3{background:#7C2D12;color:#FDBA74}
+.badge-3u{background:#7F1D1D;color:#FCA5A5}
+
+.input{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:9px 14px;color:var(--txt);font-size:13px;font-family:var(--ff);outline:none;width:100%;transition:border .2s}
+.tag{font-size:11px;padding:3px 10px;border-radius:6px;font-weight:600;display:inline-block}
+.tag-pri{background:var(--pri-g);color:var(--pri)}
+.tag-acc{background:var(--acc-g);color:var(--acc)}
+.tag-ok{background:var(--ok-g);color:var(--ok)}
+.tag-err{background:var(--err-g);color:var(--err)}
+
+.drop-zone{border:2px dashed var(--brd);border-radius:12px;padding:48px;text-align:center;background:var(--bg);cursor:pointer;transition:border-color .2s}
+.drop-zone:hover{border-color:var(--pri)}
+
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 130px)}
+.chat-messages{flex:1;overflow:auto;display:flex;flex-direction:column;gap:16px;padding:20px}
+.chat-msg{max-width:75%;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.7;white-space:pre-wrap}
+.chat-msg.ai{background:var(--bg);border:1px solid var(--brd);align-self:flex-start}
+.chat-msg.user{background:var(--pri);color:#fff;align-self:flex-end}
+.chat-input-row{display:flex;gap:10px;padding:12px 20px}
+.chat-suggestions{display:flex;gap:6px;padding:0 20px 12px;flex-wrap:wrap}
+
+.toggle{width:40px;height:22px;border-radius:11px;position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--ok)}
+.toggle.off{background:var(--brd)}
+.toggle-knob{width:18px;height:18px;border-radius:9px;background:#fff;position:absolute;top:2px;transition:left .2s}
+.toggle.on .toggle-knob{left:20px}
+.toggle.off .toggle-knob{left:2px}
+
+/* Admin */
+.admin-badge{background:linear-gradient(135deg,var(--acc),#E67E22);color:#fff;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.role-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.role-admin{background:linear-gradient(135deg,var(--acc),#E67E22);color:#fff}
+.role-user{background:var(--pri-g);color:var(--pri)}
+.role-reader{background:rgba(139,92,246,0.15);color:#A78BFA}
+
+/* Gantt */
+.gantt-header{display:flex;border-bottom:1px solid var(--brd);height:32px}
+.gantt-month{flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt-m);font-weight:700;border-right:1px solid var(--brd)}
+.gantt-row{height:36px;border-bottom:1px solid var(--brd);position:relative;display:flex;align-items:center}
+.gantt-bar{position:absolute;height:22px;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap;opacity:.85}
+.gantt-task{height:36px;border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:500;border-right:1px solid var(--brd);min-width:220px}
+
+/* Lock screen */
+.lock-badge{position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);border:1px solid var(--brd);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--txt-m);display:flex;align-items:center;gap:6px}
+
+/* Responsive */
+@media(max-width:900px){
+  .sidebar{width:66px;min-width:66px}
+  .sidebar .sidebar-logo-text,.sidebar .nav-item span:not(.nav-icon),.sidebar .user-info{display:none}
+  .sidebar .nav-item{padding:10px 22px;justify-content:center}
+  .sidebar .sidebar-logo{padding:20px 14px;justify-content:center}
+  .sidebar .sidebar-user{justify-content:center;padding:14px}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-21{grid-template-columns:1fr}
+}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease-out}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.pulse{animation:pulse 1.5s infinite}
+.pulse span:nth-child(2){animation:pulse 1.5s infinite .3s}
+.pulse span:nth-child(3){animation:pulse 1.5s infinite .6s}
+/* Loading state */
+.chat-msg.ai .loading-dots{display:flex;gap:4px;align-items:center}
+input:disabled,button:disabled{opacity:0.5;cursor:not-allowed}
+
+/* ─── ACCESSIBILITY ─── */
+/* Skip navigation */
+.skip-nav{position:absolute;top:-50px;left:0;background:var(--pri);color:#fff;padding:12px 24px;z-index:10000;font-weight:700;font-size:14px;border-radius:0 0 8px 0;transition:top .2s}
+.skip-nav:focus{top:0}
+/* Focus visible */
+*:focus-visible{outline:2px solid var(--pri);outline-offset:2px;border-radius:4px}
+button:focus-visible,.pill:focus-visible,.nav-item:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,tr.clickable:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+/* Remove outline for mouse users */
+*:focus:not(:focus-visible){outline:none}
+/* High contrast text improvements */
+.c-m{color:#9DB1D0}
+.c-d{color:#5E7499}
+th{color:#9DB1D0}
+.stat-label{color:#9DB1D0}
+.stat-sub{color:#6B82A8}
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition-duration:0.01ms!important}
+}
+/* iframe / SharePoint embed compatibility */
+html,body{margin:0;padding:0;border:0;width:100%;height:100%}
+html{overflow:hidden}
+body{overflow:hidden}
+#app{height:100vh;width:100vw}
+.app-layout{height:100%}
+/* Responsive for small iframe containers */
+@media(max-height:600px){
+  .main-content{padding:16px}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .stat-num{font-size:22px}
+}
+/* Visible focus for toggle */
+.toggle:focus-visible{outline:2px solid var(--pri);outline-offset:3px;border-radius:11px}
+/* Ensure minimum touch target */
+.nav-item,.pill,.btn,.toggle{min-height:36px}
+/* Screen reader only */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+
+<!-- ═══ SKIP NAVIGATION ═══ -->
+<a href="#main-content" class="skip-nav">Aller au contenu principal</a>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="login-screen" role="dialog" aria-label="Connexion à OA Expert" aria-modal="true">
+  <div class="login-box fade-in">
+    <div class="login-logo" aria-hidden="true">
+      <div class="login-logo-icon">OA</div>
+      <div>
+        <div class="login-logo-text">OA Expert</div>
+        <div class="login-logo-sub">IA • Ouvrages d'Art</div>
+      </div>
+    </div>
+    <h1 class="sr-only">Connexion à OA Expert — Plateforme IA Ouvrages d'Art</h1>
+    <div id="login-error" class="login-error" role="alert" aria-live="assertive"></div>
+    <div class="login-field">
+      <label for="login-user">Identifiant</label>
+      <input type="text" id="login-user" placeholder="Votre identifiant" autocomplete="username" required aria-required="true">
+    </div>
+    <div class="login-field">
+      <label for="login-pass">Mot de passe</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required aria-required="true">
+    </div>
+    <button class="login-btn" onclick="doLogin()" aria-label="Se connecter">Se connecter</button>
+    <div class="login-footer" aria-hidden="true">Plateforme sécurisée • Accès réservé aux utilisateurs autorisés</div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar" aria-label="Navigation principale">
+    <div class="sidebar-logo" onclick="toggleSidebar()" role="button" tabindex="0" aria-label="Réduire ou étendre le menu" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSidebar()}">
+      <div class="sidebar-logo-icon" aria-hidden="true">OA</div>
+      <div class="sidebar-logo-text">
+        <div style="font-size:16px;font-weight:800;letter-spacing:-.5px">OA Expert</div>
+        <div style="font-size:10px;color:var(--txt-m);font-weight:600;letter-spacing:1.5px;text-transform:uppercase">IA • Ouvrages d'Art</div>
+      </div>
+    </div>
+    <div class="sidebar-nav" id="sidebar-nav" role="menubar" aria-label="Modules"></div>
+    <div class="sidebar-user" id="sidebar-user" aria-label="Utilisateur connecté"></div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-area" role="main">
+    <header class="main-header" role="banner">
+      <div>
+        <h1 id="page-title">Tableau de bord</h1>
+        <div class="sub" id="page-sub"></div>
+      </div>
+      <div class="header-right">
+        <span id="user-role-display"></span>
+        <span style="font-size:11px;color:var(--ok);font-weight:600;display:flex;align-items:center;gap:4px" aria-label="Statut : connecté">
+          <span class="status-dot" style="background:var(--ok)" aria-hidden="true"></span> Connecté
+        </span>
+        <button class="btn btn-ghost btn-sm" onclick="doLogout()" aria-label="Se déconnecter">Déconnexion</button>
+      </div>
+    </header>
+    <div class="main-content" id="main-content" role="region" aria-label="Contenu principal" aria-live="polite"></div>
+  </main>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════════════════════════════════
+const USERS_DEFAULT = [
+  { id: "admin", username: "damien.lhote", password: "OAExpert2026!", displayName: "Damien LHOTE", initials: "DL", role: "admin", color: "#3B82F6", poste: "Chef de projet OA" },
+  { id: "u2", username: "l.aurier", password: "Inspect2026!", displayName: "Louis AURIER", initials: "LA", role: "user", color: "#10B981", poste: "Inspecteur OA" },
+  { id: "u3", username: "h.ouabdelmoumen", password: "Inspect2026!", displayName: "Hamza OUABDEL MOUMEN", initials: "HO", role: "user", color: "#8B5CF6", poste: "Inspecteur OA" },
+  { id: "u4", username: "d.segmane", password: "Inspect2026!", displayName: "Dalila SEGMANE", initials: "DS", role: "user", color: "#EC4899", poste: "Inspecteur OA" },
+];
+
+let USERS = JSON.parse(JSON.stringify(USERS_DEFAULT));
+let currentUser = null;
+let activeModule = "dashboard";
+let clientFilter = "all";
+let selectedOuvrage = null;
+let selectedDesordre = null;
+let normsSearch = "";
+let normsOrg = "all";
+let docType = "inspection";
+let planningView = "gantt";
+
+const CLIENTS = [
+  { id:"ferroviaire", label:"Ferroviaire", icon:"🚆", color:"#3B82F6", norms:["SNCF Réseau","IMGC","ITSEOA"] },
+  { id:"routier", label:"Routier", icon:"🛣️", color:"#10B981", norms:["CEREMA","SETRA","LCPC","ITSEOA"] },
+  { id:"fluvial", label:"Fluvial / Maritime", icon:"⚓", color:"#8B5CF6", norms:["CEREMA","CETU","SETRA"] },
+  { id:"autre", label:"Autre / Privé", icon:"🏗️", color:"#F59E0B", norms:["CEREMA","LCPC"] },
+];
+
+const NORMS_DB = [
+  {org:"ITSEOA",ref:"Fascicule 0",title:"Dispositions générales applicables à tous les ouvrages",domain:"Surveillance"},
+  {org:"ITSEOA",ref:"Fascicule 2",title:"Ouvrages en maçonnerie",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 3",title:"Ouvrages en béton – Fondations",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 10",title:"Ponts et viaducs à tablier en poutrelles enrobées",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 11",title:"Ponts métalliques",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 12",title:"Ponts à haubans et ponts suspendus",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 13",title:"Ponts à tablier en bois",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 21",title:"Équipements : appareils d'appui",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 32",title:"Murs de soutènement",domain:"Inspection"},
+  {org:"ITSEOA",ref:"Fascicule 40",title:"Tunnels – Génie civil et équipements",domain:"Inspection"},
+  {org:"CEREMA",ref:"Guide IQOA",title:"Image Qualité des Ouvrages d'Art – Ponts",domain:"Cotation"},
+  {org:"CEREMA",ref:"Guide IQOA Murs",title:"Image Qualité des Ouvrages d'Art – Murs",domain:"Cotation"},
+  {org:"CEREMA",ref:"Guide technique",title:"Protection des ouvrages métalliques contre la corrosion",domain:"Protection"},
+  {org:"CEREMA",ref:"Guide technique",title:"Dalles orthotropes – Conception et dimensionnement",domain:"Conception"},
+  {org:"CEREMA",ref:"Guide méthodologique",title:"Surveillance et entretien courant des OA routiers",domain:"Surveillance"},
+  {org:"CEREMA",ref:"Guide technique",title:"Résistance à la fatigue – Ponts métalliques et mixtes",domain:"Calcul"},
+  {org:"SETRA",ref:"Guide technique",title:"Appareils d'appui en élastomère fretté",domain:"Appareils d'appui"},
+  {org:"SETRA",ref:"Guide technique",title:"Précontrainte extérieure",domain:"Réparation"},
+  {org:"SETRA",ref:"Guide Joints",title:"Joints de chaussée des ponts routes",domain:"Équipements"},
+  {org:"LCPC",ref:"Guide technique",title:"Bétons projetés – Guide de mise en œuvre",domain:"Réparation"},
+  {org:"LCPC",ref:"Guide LCPC",title:"Diagnostic et aide à la décision – Ouvrages en béton",domain:"Diagnostic"},
+  {org:"LCPC",ref:"Méthode d'essai",title:"Auscultation des ouvrages par méthodes non destructives",domain:"CND"},
+  {org:"CETU",ref:"Guide technique",title:"Dossier pilote des tunnels – Génie civil",domain:"Tunnels"},
+  {org:"CETU",ref:"Fascicule",title:"Diagnostic des tunnels – Guide d'inspection détaillée",domain:"Tunnels"},
+  {org:"SNCF Réseau",ref:"IN 1256",title:"Surveillance et entretien des ouvrages d'art",domain:"Surveillance"},
+  {org:"SNCF Réseau",ref:"IN 1260",title:"Système de cotation des désordres des OA",domain:"Cotation"},
+  {org:"SNCF Réseau",ref:"IN 1130",title:"Règles de sécurité pour les travaux ferroviaires",domain:"Sécurité"},
+  {org:"SNCF Réseau",ref:"IN 2089",title:"Pose de la voie sur les ouvrages d'art",domain:"Voie"},
+  {org:"SNCF Réseau",ref:"IN 3937",title:"Formation Agent Habilité surveillance OA",domain:"Formation"},
+  {org:"SNCF Réseau",ref:"IN 7012 (IN 00035)",title:"Réparations des Ponts Métalliques (RPM)",domain:"Réparation"},
+  {org:"SNCF Réseau",ref:"IN 00036",title:"Protection anticorrosion des ouvrages métalliques",domain:"Protection"},
+  {org:"SNCF Réseau",ref:"MT 1253",title:"Règles de surveillance des OA et constructions apparentées",domain:"Surveillance"},
+  {org:"IMGC",ref:"Guide IMGC",title:"Instruction Ministérielle sur la Gestion du patrimoine",domain:"Gestion"},
+  {org:"STRRES",ref:"RECO N°4",title:"Réparation et renforcement des structures – Guide",domain:"Réparation"},
+  {org:"NF EN",ref:"EN 1090-2",title:"Exécution des structures en acier – Exigences techniques",domain:"Exécution"},
+  {org:"NF EN",ref:"EN 1504",title:"Produits et systèmes pour protection et réparation du béton",domain:"Réparation"},
+  {org:"NF EN",ref:"EN 1991 (EC1)",title:"Actions sur les structures",domain:"Calcul"},
+  {org:"NF EN",ref:"EN 1992 (EC2)",title:"Calcul des structures en béton",domain:"Calcul"},
+  {org:"NF EN",ref:"EN 1993 (EC3)",title:"Calcul des structures en acier",domain:"Calcul"},
+  {org:"NF EN",ref:"ISO 12944",title:"Anticorrosion des structures en acier par systèmes de peinture",domain:"Protection"},
+  {org:"NF EN",ref:"ISO 8501-1",title:"Préparation des subjectiles d'acier – Évaluation visuelle",domain:"Protection"},
+  {org:"CCTG",ref:"Fascicule 56",title:"Protection des ouvrages métalliques contre la corrosion",domain:"Protection"},
+  {org:"CCTG",ref:"Fascicule 65",title:"Exécution des ouvrages de génie civil en béton armé",domain:"Exécution"},
+  {org:"CCTG",ref:"Fascicule 66",title:"Exécution des ponts et ouvrages métalliques",domain:"Exécution"},
+];
+
+const OUVRAGES = [
+  {id:1,nom:"Pont de Pontorson (PK 342+120)",type:"Pont-rail métallique",client:"ferroviaire",iqoa:"3U",lastInsp:"2025-11-15",avaries:12},
+  {id:2,nom:"Viaduc de la Sioule (A89)",type:"Viaduc routier mixte",client:"routier",iqoa:"2E",lastInsp:"2025-09-20",avaries:8},
+  {id:3,nom:"Pont Long Biên (Hanoï)",type:"Pont métallique historique",client:"autre",iqoa:"3U",lastInsp:"2025-06-10",avaries:47},
+  {id:4,nom:"Passerelle de Rosny-sous-Bois",type:"Passerelle métallique",client:"ferroviaire",iqoa:"2",lastInsp:"2025-08-05",avaries:6},
+  {id:5,nom:"Pont de Neufchelles (PK 68+450)",type:"Pont-rail béton",client:"ferroviaire",iqoa:"2E",lastInsp:"2025-03-22",avaries:4},
+];
+
+const DESORDRES = [
+  {id:1,ouvrage:1,element:"Poutre principale PG",type:"Fissure de fatigue",severite:"3U",date:"2025-11-15",evolution:[{date:"2023-06",val:0.2},{date:"2024-01",val:0.35},{date:"2024-06",val:0.5},{date:"2025-01",val:0.7},{date:"2025-11",val:1.02}]},
+  {id:2,ouvrage:1,element:"Rivets cornière d'âme",type:"Corrosion avancée",severite:"2E",date:"2025-11-15",evolution:[{date:"2023-06",val:15},{date:"2024-06",val:22},{date:"2025-11",val:35}]},
+  {id:3,ouvrage:2,element:"Tablier – dalle BA",type:"Écaillage béton",severite:"2",date:"2025-09-20",evolution:[{date:"2024-03",val:0.5},{date:"2025-09",val:1.2}]},
+  {id:4,ouvrage:3,element:"Travée 5 – poutre",type:"Flambement local",severite:"3U",date:"2025-06-10",evolution:[{date:"2024-01",val:5},{date:"2025-06",val:12}]},
+  {id:5,ouvrage:4,element:"Garde-corps",type:"Déformation",severite:"2E",date:"2025-08-05",evolution:[{date:"2025-01",val:3},{date:"2025-08",val:8}]},
+];
+
+const MODULES = [
+  {id:"dashboard",label:"Tableau de bord",icon:"📊",sub:"Vue d'ensemble du patrimoine et des actions en cours"},
+  {id:"ouvrages",label:"Ouvrages",icon:"🌉",sub:"Gestion du patrimoine d'ouvrages d'art"},
+  {id:"inspections",label:"Inspections",icon:"🔍",sub:"Campagnes d'inspection et relevés de désordres"},
+  {id:"desordres",label:"Désordres",icon:"⚠️",sub:"Registre et suivi de l'évolution des avaries"},
+  {id:"normes",label:"Base normative",icon:"📚",sub:NORMS_DB.length+" références : CEREMA, SNCF, ITSEOA, SETRA, LCPC, CETU, IMGC"},
+  {id:"documents",label:"Documents",icon:"📄",sub:"Génération IA : PVID, expertises, mémoires techniques"},
+  {id:"planning",label:"Planning",icon:"📅",sub:"Planning d'inspections, travaux et études"},
+  {id:"ai",label:"Assistant IA",icon:"🤖",sub:"Assistant IA spécialisé ouvrages d'art"},
+  {id:"sep1",sep:true},
+  {id:"sharepoint",label:"SharePoint",icon:"☁️",sub:"Synchronisation et publication automatique"},
+  {id:"collab",label:"Collaboration",icon:"👥",sub:"Travail collaboratif en temps réel"},
+  {id:"sep2",sep:true},
+  {id:"admin",label:"Administration",icon:"⚙️",sub:"Gestion des utilisateurs et des accès",adminOnly:true},
+];
+
+let chatMessages = [
+  {role:"ai",content:"Bonjour ! Je suis votre assistant IA spécialisé en ouvrages d'art. Je maîtrise les référentiels ITSEOA, CEREMA, SNCF Réseau, LCPC, CETU, SETRA, IMGC et les Eurocodes.\n\nJe peux vous aider à :\n• Rédiger des PVID, rapports d'expertise, mémoires techniques\n• Analyser des désordres et leur évolution\n• Consulter et interpréter les normes applicables\n• Préparer des réponses à appels d'offres\n• Élaborer des plannings d'intervention\n\nComment puis-je vous aider ?"}
+];
+let chatLoading = false;
+
+// ─── AI SYSTEM PROMPT ───
+const AI_SYSTEM_PROMPT = `Tu es OA Expert IA, un assistant spécialisé de haut niveau en inspection, maintenance et réparation d'ouvrages d'art (ponts, viaducs, passerelles, tunnels, murs de soutènement).
+
+DOMAINES D'EXPERTISE :
+- Inspection détaillée (PVID, IDP, VST) selon ITSEOA et IN 1256 SNCF Réseau
+- Cotation IQOA (routier) et IN 1260 (ferroviaire)
+- Pathologies des structures : fissuration, corrosion, fatigue, flambement, écaillage béton, décollement peinture
+- Réparation : rivetage à chaud, remplacement d'appareils d'appui, renforcement par tôles, béton projeté, précontrainte extérieure
+- Protection anticorrosion selon ISO 12944, Fascicule 56 CCTG, IN 00036 SNCF
+- Calculs selon Eurocodes (EN 1991, 1992, 1993) et normes NF
+- Rédaction de mémoires techniques pour appels d'offres
+- Planning de travaux avec contraintes d'exploitation ferroviaire (ITC, ralentissements) et routière (basculements)
+
+BASE NORMATIVE INTÉGRÉE :
+ITSEOA : Fascicules 0 (dispositions générales), 2 (maçonnerie), 3 (béton/fondations), 10 (poutrelles enrobées), 11 (ponts métalliques), 12 (haubans/suspendus), 13 (bois), 21 (appareils d'appui), 32 (murs soutènement), 40 (tunnels)
+CEREMA : Guides IQOA ponts et murs, guide protection anticorrosion, guide fatigue, dalles orthotropes, surveillance et entretien courant
+SNCF Réseau : IN 1256 (surveillance OA), IN 1260 (cotation désordres), IN 1130 (sécurité travaux), IN 2089 (pose voie sur OA), IN 3937 (formation), IN 7012/IN 00035 (réparations ponts métalliques RPM), IN 00036 (protection anticorrosion), MT 1253 (surveillance)
+SETRA : Appareils d'appui élastomère, précontrainte extérieure, joints de chaussée
+LCPC : Bétons projetés, diagnostic béton, auscultation CND
+CETU : Dossier pilote tunnels, diagnostic tunnels
+IMGC : Instruction ministérielle gestion patrimoine
+STRRES : RECO N°4 réparation et renforcement
+Eurocodes : EN 1090-2, EN 1504, EN 1991/1992/1993, ISO 12944, ISO 8501-1
+CCTG : Fascicules 56 (anticorrosion), 65 (béton armé), 66 (ouvrages métalliques)
+
+OUVRAGES SUIVIS SUR LA PLATEFORME :
+1. Pont de Pontorson (PK 342+120) – Pont-rail métallique – IQOA 3U – 12 avaries – Ferroviaire
+2. Viaduc de la Sioule (A89) – Viaduc routier mixte – IQOA 2E – 8 avaries – Routier
+3. Pont Long Biên (Hanoï) – Pont métallique historique – IQOA 3U – 47 avaries – International
+4. Passerelle de Rosny-sous-Bois – Passerelle métallique – IQOA 2 – 6 avaries – Ferroviaire
+5. Pont de Neufchelles (PK 68+450) – Pont-rail béton – IQOA 2E – 4 avaries – Ferroviaire
+
+DÉSORDRES ACTIFS :
+- Pontorson : Fissure de fatigue poutre PG (3U, 1.02mm, progression +410%), Corrosion rivets cornière d'âme (2E, 35% surface)
+- Sioule : Écaillage béton dalle BA (2, 1.2m²)
+- Long Biên : Flambement local travée 5 (3U, 12mm)
+- Rosny : Déformation garde-corps (2E, 8mm)
+
+ÉQUIPE :
+- Damien LHOTE (Chef de projet OA, administrateur)
+- Louis AURIER (Inspecteur OA)
+- Hamza OUABDEL MOUMEN (Inspecteur OA)
+- Dalila SEGMANE (Inspecteur OA)
+
+RÈGLES DE RÉPONSE :
+- Réponds toujours en français professionnel technique
+- Cite systématiquement les références normatives applicables
+- Structure tes réponses clairement
+- Pour les rapports et documents, propose une structure détaillée avec les rubriques attendues
+- Pour les questions sur les désordres, inclus l'analyse pathologique, les causes probables et les préconisations
+- Adapte le référentiel normatif au client (ferroviaire = SNCF/IMGC, routier = CEREMA/SETRA/ITSEOA, tunnels = CETU)
+- Tu peux utiliser le formatage Markdown (gras, listes, titres)
+- Sois précis, concret et opérationnel dans tes réponses`;
+
+
+// ═══════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const found = USERS.find(x => x.username === u && x.password === p);
+  if (!found) {
+    errEl.textContent = "Identifiant ou mot de passe incorrect";
+    errEl.style.display = "block";
+    return;
+  }
+  currentUser = found;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  buildSidebar();
+  navigate('dashboard');
+  saveSession();
+  notifyParent('login', {user:found.displayName, role:found.role});
+}
+
+function doLogout() {
+  currentUser = null;
+  try { sessionStorage.removeItem('oa-session'); } catch(e) {}
+  notifyParent('logout', {});
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+
+// ═══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function buildSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  MODULES.forEach(m => {
+    if (m.sep) { nav.innerHTML += '<div class="nav-sep" role="separator"></div>'; return; }
+    if (m.adminOnly && currentUser?.role !== 'admin') return;
+    nav.innerHTML += `<div class="nav-item ${activeModule===m.id?'active':''}" onclick="navigate('${m.id}')" title="${m.label}" role="menuitem" tabindex="0" aria-current="${activeModule===m.id?'page':'false'}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();navigate('${m.id}')}">
+      <span class="nav-icon" aria-hidden="true">${m.icon}</span><span>${m.label}</span>
+    </div>`;
+  });
+  const usr = document.getElementById('sidebar-user');
+  if (currentUser) {
+    usr.innerHTML = `<div class="user-avatar" style="background:${currentUser.color}">${currentUser.initials}</div>
+      <div class="user-info"><div style="font-size:13px;font-weight:600">${currentUser.displayName}</div>
+      <div style="font-size:10px;color:var(--txt-m)">${currentUser.poste}</div></div>`;
+  }
+  const roleDisp = document.getElementById('user-role-display');
+  if (currentUser?.role === 'admin') roleDisp.innerHTML = '<span class="role-badge role-admin">Admin</span>';
+  else if (currentUser?.role === 'user') roleDisp.innerHTML = '<span class="role-badge role-user">Utilisateur</span>';
+  else roleDisp.innerHTML = '<span class="role-badge role-reader">Lecteur</span>';
+}
+
+function navigate(mod) {
+  activeModule = mod;
+  selectedOuvrage = null;
+  selectedDesordre = null;
+  const m = MODULES.find(x => x.id === mod);
+  document.getElementById('page-title').textContent = m?.label || '';
+  document.getElementById('page-sub').textContent = m?.sub || '';
+  buildSidebar();
+  renderModule();
+  saveSession();
+}
+
+function iqoaBadge(code) {
+  const cls = {'1':'badge-1','2':'badge-2','2E':'badge-2e','3':'badge-3','3U':'badge-3u'}[code]||'badge-2';
+  return `<span class="badge ${cls}">${code}</span>`;
+}
+
+function clientIcon(id) {
+  return CLIENTS.find(c=>c.id===id)?.icon||'🏗️';
+}
+function clientLabel(id) {
+  return CLIENTS.find(c=>c.id===id)?.label||'';
+}
+
+function canEdit() { return currentUser && (currentUser.role === 'admin' || currentUser.role === 'user'); }
+function isAdmin() { return currentUser?.role === 'admin'; }
+
+// ═══════════════════════════════════════════════════════════════════
+// MODULE RENDERERS
+// ═══════════════════════════════════════════════════════════════════
+function renderModule() {
+  const el = document.getElementById('main-content');
+  switch(activeModule) {
+    case 'dashboard': el.innerHTML = renderDashboard(); break;
+    case 'ouvrages': el.innerHTML = renderOuvrages(); break;
+    case 'inspections': el.innerHTML = renderInspections(); break;
+    case 'desordres': el.innerHTML = renderDesordres(); break;
+    case 'normes': el.innerHTML = renderNormes(); attachNormsEvents(); break;
+    case 'documents': el.innerHTML = renderDocuments(); break;
+    case 'planning': el.innerHTML = renderPlanning(); break;
+    case 'ai': el.innerHTML = renderAI(); attachChatEvents(); break;
+    case 'sharepoint': el.innerHTML = renderSharepoint(); break;
+    case 'collab': el.innerHTML = renderCollab(); break;
+    case 'admin': el.innerHTML = renderAdmin(); attachAdminEvents(); break;
+    default: el.innerHTML = renderDashboard();
+  }
+}
+
+// ─── DASHBOARD ───
+function renderDashboard() {
+  const urgent = OUVRAGES.filter(o=>['3U','2E'].includes(o.iqoa));
+  return `<div class="fade-in">
+  <div class="grid-4" style="margin-bottom:24px">
+    ${[{l:"Ouvrages suivis",v:OUVRAGES.length,c:"var(--pri)",s:"${CLIENTS.length} secteurs"},
+       {l:"Désordres actifs",v:DESORDRES.length,c:"var(--err)",s:"${DESORDRES.filter(d=>d.severite==='3U').length} urgences 3U"},
+       {l:"Inspections planifiées",v:8,c:"var(--acc)",s:"Q1 2026"},
+       {l:"Documents générés",v:23,c:"var(--ok)",s:"ce trimestre"}
+    ].map(s=>`<div class="card" style="border-top:3px solid ${s.c}">
+      <div class="stat-num" style="color:${s.c}">${s.v}</div>
+      <div class="stat-label">${s.l}</div>
+      <div class="stat-sub">${s.s}</div>
+    </div>`).join('')}
+  </div>
+  <div class="grid-21">
+    <div class="card">
+      <div class="card-title">🚨 Ouvrages critiques</div>
+      <table><thead><tr><th>Ouvrage</th><th>Type</th><th>Client</th><th>IQOA</th><th>Avaries</th></tr></thead>
+      <tbody>${urgent.map(o=>`<tr class="clickable" onclick="selectedOuvrage=${o.id};activeModule='ouvrages';navigate('ouvrages');viewOuvrage(${o.id})">
+        <td class="fw600">${o.nom}</td><td class="c-m fs12">${o.type}</td>
+        <td>${clientIcon(o.client)}</td><td>${iqoaBadge(o.iqoa)}</td>
+        <td class="mono fw600 ${o.avaries>10?'c-err':''}">${o.avaries}</td>
+      </tr>`).join('')}</tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Prochaines échéances</div>
+      ${[{d:"18 fév.",l:"PVID Pont Pontorson",t:"Inspection",c:"var(--pri)"},
+         {d:"25 fév.",l:"Rapport expertise Sioule",t:"Document",c:"var(--acc)"},
+         {d:"03 mars",l:"COTECH Long Biên",t:"Réunion",c:"var(--ok)"},
+         {d:"10 mars",l:"Remise mémoire AO Ligne 4",t:"AO",c:"#8B5CF6"}
+      ].map((e,i)=>`<div style="display:flex;gap:14px;align-items:center;padding:10px 0;${i<3?'border-bottom:1px solid var(--brd)':''}">
+        <div class="mono fw700 c-acc fs12" style="min-width:56px">${e.d}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${e.l}</div>
+        <span class="tag" style="background:${e.c}18;color:${e.c}">${e.t}</span></div>
+      </div>`).join('')}
+    </div>
+  </div></div>`;
+}
+
+// ─── OUVRAGES ───
+function viewOuvrage(id) {
+  selectedOuvrage = id;
+  document.getElementById('main-content').innerHTML = renderOuvrages();
+}
+
+function renderOuvrages() {
+  const filtered = clientFilter==='all' ? OUVRAGES : OUVRAGES.filter(o=>o.client===clientFilter);
+  let pills = `<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" role="tablist" aria-label="Filtre par client">
+    <span class="pill ${clientFilter==='all'?'active':''}" onclick="clientFilter='all';renderModule()" role="tab" tabindex="0" aria-selected="${clientFilter==='all'}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();clientFilter='all';renderModule()}">🏗️ Tous</span>
+    ${CLIENTS.map(c=>`<span class="pill ${clientFilter===c.id?'active':''}" onclick="clientFilter='${c.id}';renderModule()" role="tab" tabindex="0" aria-selected="${clientFilter===c.id}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();clientFilter='${c.id}';renderModule()}">${c.icon} ${c.label}</span>`).join('')}
+  </div>`;
+
+  if (selectedOuvrage) {
+    const o = OUVRAGES.find(x=>x.id===selectedOuvrage);
+    if (!o) { selectedOuvrage=null; return renderOuvrages(); }
+    const cl = CLIENTS.find(c=>c.id===o.client);
+    const des = DESORDRES.filter(d=>d.ouvrage===o.id);
+    return `<div class="fade-in">
+      <div style="cursor:pointer;color:var(--txt-m);font-size:13px;margin-bottom:20px" onclick="selectedOuvrage=null;renderModule()">← Retour à la liste</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div><div style="font-size:20px;font-weight:800;margin-bottom:6px">${o.nom}</div>
+          <div class="c-m fs13">${o.type} • ${cl?.label}</div></div>
+          ${iqoaBadge(o.iqoa)}
+        </div>
+        <div class="grid-3" style="margin-top:20px">
+          ${[['Dernière inspection',o.lastInsp],['Avaries actives',o.avaries],['Normes applicables',cl?.norms.join(', ')]].map(([l,v])=>`
+          <div style="padding:14px;background:var(--bg);border-radius:8px;border:1px solid var(--brd)">
+            <div class="fs11 c-m fw600" style="text-transform:uppercase;letter-spacing:.8px">${l}</div>
+            <div style="font-size:15px;font-weight:600;margin-top:4px">${v}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🚨 Désordres associés</div>
+        <table><thead><tr><th>Élément</th><th>Type</th><th>Sévérité</th><th>Date</th><th>Évolution</th></tr></thead>
+        <tbody>${des.map(d=>`<tr class="clickable" onclick="selectedDesordre=${d.id};navigate('desordres');viewDesordre(${d.id})">
+          <td class="fw600">${d.element}</td><td class="c-m">${d.type}</td><td>${iqoaBadge(d.severite)}</td>
+          <td class="mono fs12">${d.date}</td><td class="fs12 c-err">↗ ${d.evolution.length} mesures</td>
+        </tr>`).join('')}</tbody></table>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="fade-in">${pills}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="card-title">Patrimoine suivi (${filtered.length} ouvrages)</div>
+        ${canEdit()?'<button class="btn btn-pri">+ Nouvel ouvrage</button>':''}
+      </div>
+      <table><thead><tr><th>Ouvrage</th><th>Type</th><th>Client</th><th>IQOA</th><th>Dernière inspection</th><th>Avaries</th></tr></thead>
+      <tbody>${filtered.map(o=>`<tr class="clickable" onclick="viewOuvrage(${o.id})">
+        <td class="fw600">${o.nom}</td><td class="c-m fs12">${o.type}</td>
+        <td>${clientIcon(o.client)} <span class="c-m fs12">${clientLabel(o.client)}</span></td>
+        <td>${iqoaBadge(o.iqoa)}</td><td class="mono fs12">${o.lastInsp}</td>
+        <td class="mono fw600 ${o.avaries>10?'c-err':''}">${o.avaries}</td>
+      </tr>`).join('')}</tbody></table>
+    </div></div>`;
+}
+
+// ─── INSPECTIONS ───
+function renderInspections() {
+  const camps = [
+    {ref:"INS-2025-042",ouv:"Pont de Pontorson",type:"PVID",date:"2025-11-15",insp:"D. Lhote",status:"✅ Finalisé"},
+    {ref:"INS-2025-038",ouv:"Viaduc de la Sioule",type:"IDP",date:"2025-09-20",insp:"L. Aurier",status:"✅ Finalisé"},
+    {ref:"INS-2025-035",ouv:"Pont Long Biên",type:"Expertise",date:"2025-06-10",insp:"D. Lhote",status:"✅ Finalisé"},
+    {ref:"INS-2026-001",ouv:"Pont de Pontorson",type:"PVID",date:"2026-02-18",insp:"D. Lhote",status:"📋 Planifiée"},
+    {ref:"INS-2026-002",ouv:"Passerelle Rosny",type:"VST",date:"2026-03-05",insp:"H. Ouabdel Moumen",status:"📋 Planifiée"},
+  ];
+  return `<div class="fade-in"><div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="card-title">🔍 Campagnes d'inspection</div>
+      ${canEdit()?'<button class="btn btn-pri">+ Nouvelle campagne</button>':''}
+    </div>
+    <table><thead><tr><th>Réf.</th><th>Ouvrage</th><th>Type</th><th>Date</th><th>Inspecteur</th><th>Statut</th></tr></thead>
+    <tbody>${camps.map(c=>`<tr class="clickable">
+      <td class="mono fs12 fw700 c-acc">${c.ref}</td><td class="fw600">${c.ouv}</td>
+      <td><span class="tag tag-pri">${c.type}</span></td><td class="mono fs12">${c.date}</td>
+      <td>${c.insp}</td><td class="fs12">${c.status}</td>
+    </tr>`).join('')}</tbody></table>
+  </div></div>`;
+}
+
+// ─── DESORDRES ───
+function viewDesordre(id) {
+  selectedDesordre = id;
+  document.getElementById('main-content').innerHTML = renderDesordres();
+  setTimeout(()=>drawEvolutionChart(id), 100);
+}
+
+function renderDesordres() {
+  if (selectedDesordre) {
+    const d = DESORDRES.find(x=>x.id===selectedDesordre);
+    if (!d) { selectedDesordre=null; return renderDesordres(); }
+    const ouv = OUVRAGES.find(o=>o.id===d.ouvrage);
+    const pct = ((d.evolution.at(-1).val / d.evolution[0].val -1)*100).toFixed(0);
+    const unit = d.type.includes('Fissure')?'mm':d.type.includes('Corrosion')?'% surface':'mm';
+    return `<div class="fade-in">
+      <div style="cursor:pointer;color:var(--txt-m);font-size:13px;margin-bottom:20px" onclick="selectedDesordre=null;renderModule()">← Retour à la liste</div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Fiche désordre #${d.id}</div>
+          ${[['Ouvrage',ouv?.nom],['Élément',d.element],['Nature',d.type],['Sévérité',iqoaBadge(d.severite)],['Date constat',d.date],['Mesures',d.evolution.length]].map(([l,v])=>`
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--brd)">
+            <span class="c-m fs13">${l}</span><span class="fw600 fs13">${v}</span>
+          </div>`).join('')}
+          ${canEdit()?`<div style="margin-top:16px">
+            <button class="btn btn-pri">📝 Générer rapport</button>
+            <button class="btn btn-ghost" style="margin-left:8px">📷 Ajouter photo</button>
+          </div>`:''}
+        </div>
+        <div class="card">
+          <div class="card-title">📈 Évolution temporelle (${unit})</div>
+          <svg id="evo-chart" style="width:100%;height:160px"></svg>
+          <div style="margin-top:14px;padding:12px;background:${d.severite==='3U'?'var(--err-g)':'var(--acc-g)'};border-radius:8px;border:1px solid ${d.severite==='3U'?'rgba(239,68,68,0.3)':'rgba(245,158,11,0.3)'}">
+            <div class="fs12 fw700" style="color:${d.severite==='3U'?'var(--err)':'var(--acc)'};margin-bottom:4px">
+              ⚠️ ${d.severite==='3U'?'TENDANCE CRITIQUE':'SURVEILLANCE RENFORCÉE'}
+            </div>
+            <div class="fs11 c-m">Progression de +${pct}% depuis le premier constat. ${d.severite==='3U'?'Intervention urgente recommandée.':'Prochaine mesure à programmer.'}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+  return `<div class="fade-in"><div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="card-title">Registre des désordres (${DESORDRES.length})</div>
+      ${canEdit()?'<button class="btn btn-pri">+ Nouveau désordre</button>':''}
+    </div>
+    <table><thead><tr><th>Ouvrage</th><th>Élément</th><th>Type</th><th>Sévérité</th><th>Mesures</th><th></th></tr></thead>
+    <tbody>${DESORDRES.map(d=>{
+      const ouv=OUVRAGES.find(o=>o.id===d.ouvrage);
+      return `<tr class="clickable" onclick="viewDesordre(${d.id})">
+        <td class="fs12">${ouv?.nom}</td><td class="fw600">${d.element}</td><td class="c-m">${d.type}</td>
+        <td>${iqoaBadge(d.severite)}</td><td class="mono">${d.evolution.length}</td>
+        <td class="fs12 c-pri" style="cursor:pointer">Voir ↗</td>
+      </tr>`;
+    }).join('')}</tbody></table>
+  </div></div>`;
+}
+
+function drawEvolutionChart(id) {
+  const d = DESORDRES.find(x=>x.id===id);
+  if (!d) return;
+  const svg = d3.select('#evo-chart');
+  svg.selectAll('*').remove();
+  const rect = document.getElementById('evo-chart')?.getBoundingClientRect();
+  const w = rect?.width||340, h = 160, m = {t:15,r:15,b:30,l:40};
+  svg.attr('viewBox',`0 0 ${w} ${h}`);
+  const color = d.severite==='3U'?'#EF4444':'#F59E0B';
+  const data = d.evolution;
+  const x = d3.scalePoint().domain(data.map(d=>d.date)).range([m.l,w-m.r]).padding(0.2);
+  const y = d3.scaleLinear().domain([0,d3.max(data,d=>d.val)*1.2]).range([h-m.b,m.t]);
+  const line = d3.line().x(d=>x(d.date)).y(d=>y(d.val)).curve(d3.curveMonotoneX);
+  const area = d3.area().x(d=>x(d.date)).y0(h-m.b).y1(d=>y(d.val)).curve(d3.curveMonotoneX);
+  const grad = svg.append('defs').append('linearGradient').attr('id','ag').attr('x1',0).attr('y1',0).attr('x2',0).attr('y2',1);
+  grad.append('stop').attr('offset','0%').attr('stop-color',color).attr('stop-opacity',0.3);
+  grad.append('stop').attr('offset','100%').attr('stop-color',color).attr('stop-opacity',0.02);
+  svg.append('path').datum(data).attr('d',area).attr('fill','url(#ag)');
+  svg.append('path').datum(data).attr('d',line).attr('fill','none').attr('stroke',color).attr('stroke-width',2.5);
+  data.forEach(d=>{svg.append('circle').attr('cx',x(d.date)).attr('cy',y(d.val)).attr('r',4).attr('fill','#141D2F').attr('stroke',color).attr('stroke-width',2)});
+  svg.append('g').attr('transform',`translate(0,${h-m.b})`).call(d3.axisBottom(x).tickSize(0)).select('.domain').remove();
+  svg.append('g').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(w-m.l-m.r))).call(g=>{g.select('.domain').remove();g.selectAll('.tick line').attr('stroke','#1E2A45').attr('stroke-dasharray','2,3')});
+  svg.selectAll('text').attr('fill','#8B9DC3').attr('font-size',10).attr('font-family',"'JetBrains Mono',monospace");
+}
+
+// ─── NORMES ───
+function renderNormes() {
+  const orgs = [...new Set(NORMS_DB.map(n=>n.org))];
+  const filtered = NORMS_DB.filter(n=>(normsOrg==='all'||n.org===normsOrg)&&(normsSearch===''||(n.title+n.ref+n.org+n.domain).toLowerCase().includes(normsSearch.toLowerCase())));
+  return `<div class="fade-in">
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center" role="search" aria-label="Recherche de normes">
+      <label for="norms-search" class="sr-only">Rechercher une norme</label>
+      <input class="input" id="norms-search" style="max-width:340px" placeholder="🔍 Rechercher une norme, fascicule, guide..." value="${normsSearch}" aria-label="Rechercher une norme, fascicule ou guide">
+      <span class="pill ${normsOrg==='all'?'active':''}" onclick="normsOrg='all';renderModule()" role="tab" tabindex="0" aria-selected="${normsOrg==='all'}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();normsOrg='all';renderModule()}">Tous</span>
+      ${orgs.map(o=>`<span class="pill ${normsOrg===o?'active':''}" onclick="normsOrg='${o}';renderModule()" role="tab" tabindex="0" aria-selected="${normsOrg===o}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();normsOrg='${o}';renderModule()}">${o}</span>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">📚 Base normative (${filtered.length} / ${NORMS_DB.length} références)</div>
+      <table><thead><tr><th>Organisme</th><th>Référence</th><th>Titre</th><th>Domaine</th></tr></thead>
+      <tbody>${filtered.map(n=>`<tr class="clickable">
+        <td class="fw700 fs12 c-acc">${n.org}</td><td class="mono fs12 fw600">${n.ref}</td>
+        <td>${n.title}</td><td><span class="tag tag-pri">${n.domain}</span></td>
+      </tr>`).join('')}</tbody></table>
+    </div></div>`;
+}
+function attachNormsEvents() {
+  const el = document.getElementById('norms-search');
+  if(el) el.addEventListener('input', e=>{normsSearch=e.target.value;renderModule()});
+}
+
+// ─── DOCUMENTS ───
+function renderDocuments() {
+  const readOnly = !canEdit();
+  const types = [
+    {id:"inspection",l:"📋 PVID / Inspection détaillée"},
+    {id:"expertise",l:"🔬 Compte-rendu d'expertise"},
+    {id:"memoire",l:"📝 Mémoire technique (AO)"},
+    {id:"import",l:"📁 Import rapports"},
+  ];
+  let pills = `<div style="display:flex;gap:8px;margin-bottom:20px">
+    ${types.map(t=>`<span class="pill ${docType===t.id?'active':''}" onclick="docType='${t.id}';renderModule()">${t.l}</span>`).join('')}
+  </div>`;
+
+  if (docType === 'import') {
+    return `<div class="fade-in">${pills}<div class="card">
+      <div class="card-title">📁 Import de rapports existants</div>
+      ${canEdit()?`<div class="drop-zone"><div style="font-size:40px;margin-bottom:12px">📄</div>
+        <div class="fw600" style="margin-bottom:6px">Glissez-déposez vos rapports ici</div>
+        <div class="fs12 c-m">PDF, DOCX, XLSX • Max 50 Mo • Extraction IA automatique</div>
+        <button class="btn btn-pri" style="margin-top:16px">📤 Parcourir</button>
+      </div>`:'<div style="padding:20px;text-align:center;color:var(--txt-m)">🔒 Droits d\'écriture requis pour importer</div>'}
+      <div style="margin-top:20px"><div class="fw600 fs13" style="margin-bottom:10px">Rapports intégrés</div>
+      ${[{n:"PVID_Pontorson_2023-06.pdf",d:"2023-06-15",t:"PVID"},
+         {n:"Expertise_Sioule_2024-03.docx",d:"2024-03-20",t:"Expertise"},
+         {n:"Rapport_LongBien_2024-01.pdf",d:"2024-01-10",t:"Inspection"}
+      ].map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--brd)">
+        <div style="display:flex;align-items:center;gap:10px">📄<div><div class="fs13 fw500">${f.n}</div><div class="fs11 c-d">${f.d} • ${f.t}</div></div></div>
+        <span class="fs12 c-ok">✅ Intégré</span>
+      </div>`).join('')}
+      </div>
+    </div></div>`;
+  }
+
+  return `<div class="fade-in">${pills}<div class="card">
+    <div class="card-title">${docType==='inspection'?'📋 Générateur de PVID / Rapport d\'inspection':docType==='expertise'?'🔬 Générateur de compte-rendu d\'expertise':'📝 Générateur de mémoire technique'}</div>
+    <div class="grid-2">
+      <div><label class="fs12 c-m fw600" style="display:block;margin-bottom:6px">Ouvrage</label>
+        <select class="input">${OUVRAGES.map(o=>`<option>${o.nom}</option>`).join('')}</select></div>
+      <div><label class="fs12 c-m fw600" style="display:block;margin-bottom:6px">Client / Gestionnaire</label>
+        <select class="input">${CLIENTS.map(c=>`<option>${c.icon} ${c.label}</option>`).join('')}</select></div>
+      <div><label class="fs12 c-m fw600" style="display:block;margin-bottom:6px">Date d'intervention</label>
+        <input type="date" class="input" value="2026-02-16"></div>
+      <div><label class="fs12 c-m fw600" style="display:block;margin-bottom:6px">Référentiel normatif</label>
+        <select class="input"><option>ITSEOA + CEREMA (routier)</option><option>IN 1256 + SNCF Réseau (ferroviaire)</option><option>CETU (tunnels)</option></select></div>
+    </div>
+    ${docType==='memoire'?`<div style="margin-top:16px"><label class="fs12 c-m fw600" style="display:block;margin-bottom:6px">DCE / CCTP</label><div class="drop-zone" style="padding:20px"><span class="fs12 c-m">📤 Importer le DCE pour extraction automatique</span></div></div>`:''}
+    ${canEdit()?`<div style="margin-top:20px;display:flex;gap:10px">
+      <button class="btn btn-pri">🤖 Générer avec l'IA</button>
+      <button class="btn btn-ghost">📥 Modèle vierge (.docx)</button>
+    </div>`:'<div style="margin-top:16px;padding:10px;text-align:center;color:var(--txt-m);font-size:13px">🔒 Accès en lecture seule</div>'}
+    <div style="margin-top:20px;padding:14px;background:var(--pri-g);border-radius:8px;border:1px solid rgba(59,130,246,0.2)">
+      <div class="fs12 fw700 c-pri" style="margin-bottom:6px">💡 L'IA intègre automatiquement :</div>
+      <div class="fs12 c-m" style="line-height:1.8">
+        • Références normatives adaptées au type d'ouvrage et au gestionnaire<br>
+        • Historique des inspections et évolution des désordres<br>
+        • Cotations IQOA / IN 1260 selon le référentiel<br>
+        • Préconisations de réparation (guides STRRES, CEREMA)<br>
+        • Photos et relevés des campagnes précédentes
+      </div>
+    </div>
+  </div></div>`;
+}
+
+// ─── PLANNING ───
+function renderPlanning() {
+  const tasks = [
+    {name:"PVID Pont Pontorson",start:0,dur:5,cat:"Inspection",color:"var(--pri)"},
+    {name:"Expertise Viaduc Sioule",start:3,dur:8,cat:"Expertise",color:"var(--acc)"},
+    {name:"Travaux réparation Pontorson",start:14,dur:25,cat:"Travaux",color:"var(--err)"},
+    {name:"PVID Passerelle Rosny",start:7,dur:4,cat:"Inspection",color:"var(--pri)"},
+    {name:"Mémoire AO Ligne 4",start:1,dur:12,cat:"AO",color:"#8B5CF6"},
+    {name:"Rédaction rapport Long Biên",start:5,dur:10,cat:"Rapport",color:"var(--ok)"},
+    {name:"ITC Pontorson – travaux voie",start:14,dur:3,cat:"Sécurité",color:"#EC4899"},
+    {name:"Inspection système Neufchelles",start:20,dur:6,cat:"Inspection",color:"var(--pri)"},
+  ];
+  const total = 42;
+  let pills = `<div style="display:flex;gap:8px;margin-bottom:20px">
+    <span class="pill ${planningView==='gantt'?'active':''}" onclick="planningView='gantt';renderModule()">📊 Gantt</span>
+    <span class="pill ${planningView==='liste'?'active':''}" onclick="planningView='liste';renderModule()">📋 Liste</span>
+  </div>`;
+  if (planningView==='liste') {
+    return `<div class="fade-in">${pills}<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="card-title">📅 Planning Q1 2026</div>
+        ${canEdit()?'<button class="btn btn-pri">+ Nouvelle tâche</button>':''}
+      </div>
+      <table><thead><tr><th>Tâche</th><th>Catégorie</th><th>Début</th><th>Durée</th></tr></thead>
+      <tbody>${tasks.map(t=>`<tr class="clickable">
+        <td class="fw600">${t.name}</td>
+        <td><span class="tag" style="background:${t.color}20;color:${t.color}">${t.cat}</span></td>
+        <td class="mono fs12">J+${t.start}</td><td class="mono fs12">${t.dur}j</td>
+      </tr>`).join('')}</tbody></table>
+    </div></div>`;
+  }
+  return `<div class="fade-in">${pills}<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="card-title">📅 Planning Q1 2026</div>
+      ${canEdit()?'<button class="btn btn-pri">+ Nouvelle tâche</button>':''}
+    </div>
+    <div style="overflow-x:auto"><div style="display:grid;grid-template-columns:220px 1fr;min-width:800px">
+      <div style="border-right:1px solid var(--brd)">
+        <div style="height:32px;border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;font-size:11px;color:var(--txt-m);font-weight:700;text-transform:uppercase">Tâche</div>
+        ${tasks.map(t=>`<div class="gantt-task">${t.name}</div>`).join('')}
+      </div>
+      <div>
+        <div class="gantt-header">${['Fév.','Mars','Avr.'].map(m=>`<div class="gantt-month">${m}</div>`).join('')}</div>
+        ${tasks.map(t=>`<div class="gantt-row"><div class="gantt-bar" style="left:${(t.start/total)*100}%;width:${(t.dur/total)*100}%;background:${t.color}">${t.cat}</div></div>`).join('')}
+      </div>
+    </div></div>
+  </div></div>`;
+}
+
+// ─── AI ASSISTANT ───
+function renderAI() {
+  return `<div class="chat-container fade-in" role="region" aria-label="Assistant IA">
+    <div class="card" style="flex:1;overflow:auto;margin-bottom:0;display:flex;flex-direction:column">
+      <div class="chat-messages" id="chat-messages" role="log" aria-label="Messages de conversation" aria-live="polite">
+        ${chatMessages.map(m=>`<div class="chat-msg ${m.role}" style="align-self:${m.role==='user'?'flex-end':'flex-start'}" role="article" aria-label="${m.role==='ai'?'Réponse de l\'assistant':'Votre message'}">
+          ${m.role==='ai'?'<div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 OA Expert IA</div>':''}
+          ${m.content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}
+        </div>`).join('')}
+        ${chatLoading?`<div class="chat-msg ai" style="align-self:flex-start" aria-label="L'assistant réfléchit">
+          <div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 OA Expert IA</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pulse" style="display:inline-flex;gap:4px">
+              <span style="width:6px;height:6px;border-radius:3px;background:var(--pri);display:inline-block"></span>
+              <span style="width:6px;height:6px;border-radius:3px;background:var(--pri);display:inline-block;animation-delay:.3s"></span>
+              <span style="width:6px;height:6px;border-radius:3px;background:var(--pri);display:inline-block;animation-delay:.6s"></span>
+            </span>
+            <span class="fs12 c-m">Analyse en cours...</span>
+          </div>
+        </div>`:''}
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <label for="chat-input" class="sr-only">Votre question</label>
+      <input class="input" id="chat-input" style="flex:1;border-color:var(--brd-l)" placeholder="Posez votre question... (normes, rapports, diagnostics, mémoires...)" aria-label="Saisir votre question" ${chatLoading?'disabled':''}>
+      <button class="btn btn-pri" onclick="sendChat()" style="padding:10px 18px" aria-label="Envoyer le message" ${chatLoading?'disabled style="padding:10px 18px;opacity:0.5"':''}>➤</button>
+    </div>
+    <div class="chat-suggestions" role="group" aria-label="Suggestions de questions">
+      ${['Cotation IQOA ?','Rédiger un PVID pour Pontorson','Normes applicables pont métallique','Mémoire technique AO','Analyser la fissure poutre PG Pontorson','Planning travaux réparation'].map(q=>`<span class="pill" style="font-size:11px" onclick="document.getElementById('chat-input').value='${q}';sendChat()" role="button" tabindex="0" aria-label="Poser la question : ${q}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('chat-input').value='${q}';sendChat()}">${q}</span>`).join('')}
+    </div>
+  </div>`;
+}
+function attachChatEvents() {
+  const el = document.getElementById('chat-input');
+  if(el) el.addEventListener('keydown', e=>{if(e.key==='Enter')sendChat()});
+  const msgs = document.getElementById('chat-messages');
+  if(msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+async function sendChat() {
+  const el = document.getElementById('chat-input');
+  if(!el||!el.value.trim()||chatLoading) return;
+  const msg = el.value.trim();
+  chatMessages.push({role:'user',content:msg});
+  el.value = '';
+  chatLoading = true;
+  renderModule();
+
+  const apiKey = getApiKey();
+
+  // If no API key configured, show helpful message
+  if (!apiKey) {
+    chatMessages.push({role:'ai', content:
+      '⚠️ **Clé API non configurée**\n\nPour activer l\'assistant IA, demandez à l\'administrateur de configurer la clé API Anthropic dans le module **Administration** → **Configuration de l\'Assistant IA**.\n\nEn attendant, je peux vous orienter vers les modules de la plateforme :\n• **Base normative** — Recherche dans les ' + NORMS_DB.length + ' références\n• **Désordres** — Suivi de l\'évolution des avaries\n• **Documents** — Modèles de PVID, expertises, mémoires'
+    });
+    chatLoading = false;
+    renderModule();
+    return;
+  }
+
+  try {
+    // Build API conversation history (skip the initial greeting)
+    const apiMessages = chatMessages
+      .filter(m => m.role === 'user' || m.role === 'ai')
+      .slice(1) // skip initial greeting
+      .map(m => ({
+        role: m.role === 'ai' ? 'assistant' : 'user',
+        content: m.content
+      }));
+
+    // Ensure conversation starts with user message
+    if (apiMessages.length === 0 || apiMessages[0].role !== 'user') {
+      apiMessages.unshift({ role: 'user', content: msg });
+    }
+
+    // Ensure alternating roles (API requirement)
+    const cleanMessages = [];
+    for (const m of apiMessages) {
+      if (cleanMessages.length === 0 || cleanMessages[cleanMessages.length-1].role !== m.role) {
+        cleanMessages.push(m);
+      } else {
+        cleanMessages[cleanMessages.length-1].content += '\n' + m.content;
+      }
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: getApiModel(),
+        max_tokens: 4096,
+        system: AI_SYSTEM_PROMPT,
+        messages: cleanMessages
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(()=>({}));
+      throw new Error(errData.error?.message || 'Erreur API (' + response.status + ')');
+    }
+
+    const data = await response.json();
+    const aiText = data.content
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('\n');
+
+    chatMessages.push({role:'ai', content: aiText || 'Réponse vide reçue.'});
+  } catch(err) {
+    console.error('OA Expert IA Error:', err);
+    chatMessages.push({role:'ai', content:
+      '⚠️ **Erreur de connexion à l\'IA**\n\n' + err.message + '\n\nVérifiez :\n• La clé API dans **Administration** → **Configuration IA**\n• Votre connexion internet\n• Le bouton **Tester la connexion** pour diagnostiquer'
+    });
+  }
+
+  chatLoading = false;
+  renderModule();
+}
+
+// ─── SHAREPOINT ───
+function renderSharepoint() {
+  return `<div class="fade-in">
+    <div class="card">
+      <div class="card-title">☁️ Intégration SharePoint</div>
+      <div class="grid-2" style="margin-bottom:20px">
+        <div><label class="fs12 c-m fw600" style="display:block;margin-bottom:6px">URL du site SharePoint</label>
+          <input class="input" placeholder="https://votreentreprise.sharepoint.com/sites/OA" ${!isAdmin()?'disabled':''}></div>
+        <div><label class="fs12 c-m fw600" style="display:block;margin-bottom:6px">Bibliothèque de documents</label>
+          <input class="input" placeholder="Documents partagés / OA / Rapports" ${!isAdmin()?'disabled':''}></div>
+      </div>
+      ${isAdmin()?`<div style="display:flex;gap:10px">
+        <button class="btn btn-pri">🔗 Connecter</button>
+        <button class="btn btn-ghost">🔄 Synchroniser</button>
+      </div>`:'<div class="fs12 c-m">🔒 Configuration réservée à l\'administrateur</div>'}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">📤 Publication automatique</div>
+        ${[{l:"PVID et rapports d'inspection",p:"/Sites/OA/Inspections/",on:true},
+           {l:"Mémoires techniques",p:"/Sites/OA/AO/Mémoires/",on:true},
+           {l:"Photos et relevés",p:"/Sites/OA/Médias/",on:false},
+           {l:"Plannings",p:"/Sites/OA/Planning/",on:true}
+        ].map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--brd)">
+          <div><div class="fs13 fw500">${r.l}</div><div class="fs11 c-d mono">${r.p}</div></div>
+          <div class="toggle ${r.on?'on':'off'}" ${isAdmin()?'style="cursor:pointer"':''}><div class="toggle-knob"></div></div>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-title">📥 Dernières synchronisations</div>
+        ${[{f:"PVID_Pontorson_2025-11.docx",t:"Il y a 2h",s:"✅",u:"D. Lhote"},
+           {f:"Planning_Q1_2026.xlsx",t:"Il y a 5h",s:"✅",u:"D. Lhote"},
+           {f:"Photos_Sioule_lot3.zip",t:"Hier",s:"⏳",u:"L. Aurier"},
+           {f:"Memoire_AO_Ligne4.docx",t:"14/02",s:"✅",u:"D. Lhote"}
+        ].map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--brd)">
+          <div style="display:flex;align-items:center;gap:8px">${s.s}<div><div class="fs13 fw500">${s.f}</div><div class="fs11 c-d">${s.u} • ${s.t}</div></div></div>
+        </div>`).join('')}
+      </div>
+    </div></div>`;
+}
+
+// ─── COLLABORATION ───
+function renderCollab() {
+  return `<div class="fade-in">
+    <div class="card">
+      <div class="card-title">👥 Équipe projet</div>
+      <div class="grid-3">
+        ${USERS.map(u=>`<div style="padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--brd);display:flex;align-items:center;gap:14px">
+          <div style="width:44px;height:44px;border-radius:22px;background:${u.color};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;position:relative">
+            ${u.initials}<div style="width:10px;height:10px;border-radius:5px;background:${u.id==='admin'||u.id==='u2'?'var(--ok)':'var(--txt-d)'};position:absolute;bottom:0;right:0;border:2px solid var(--bg)"></div>
+          </div>
+          <div><div class="fw700" style="font-size:14px">${u.displayName}</div><div class="fs12 c-m">${u.poste}</div>
+            <span class="role-badge role-${u.role}" style="margin-top:4px">${u.role}</span>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">💬 Fil d'activité</div>
+        ${[{u:"DL",m:"PVID Pontorson finalisé et publié sur SharePoint",t:"14:30",c:"#3B82F6"},
+           {u:"LA",m:"Ajout de 3 photos sur le désordre #2 (Sioule)",t:"11:15",c:"#10B981"},
+           {u:"DL",m:"Nouvelle cotation 3U sur fissure poutre PG Pontorson",t:"09:45",c:"#3B82F6"},
+           {u:"DS",m:"Rapport inspection Rosny – version finale uploadée",t:"Hier",c:"#EC4899"}
+        ].map(a=>`<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--brd)">
+          <div style="width:32px;height:32px;border-radius:16px;background:${a.c};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;flex-shrink:0">${a.u}</div>
+          <div style="flex:1"><div class="fs13">${a.m}</div><div class="fs11 c-d" style="margin-top:2px">${a.t}</div></div>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-title">🔔 Notifications</div>
+        ${[{i:"⚠️",m:"Désordre 3U – Pontorson : intervention requise sous 2 semaines",p:"urgent"},
+           {i:"📅",m:"Rappel : COTECH Long Biên le 03/03 à 14h",p:"normal"},
+           {i:"📋",m:"Rapport expertise Sioule en attente de validation",p:"normal"},
+           {i:"🔄",m:"Sync SharePoint terminée (4 fichiers)",p:"info"}
+        ].map(n=>`<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd);align-items:flex-start">
+          <span style="font-size:16px">${n.i}</span>
+          <div class="fs13 ${n.p==='urgent'?'fw700 c-err':''}">${n.m}</div>
+        </div>`).join('')}
+      </div>
+    </div></div>`;
+}
+
+// ─── ADMIN (ONLY FOR damien.lhote) ───
+function renderAdmin() {
+  if (!isAdmin()) return '<div class="card" style="text-align:center;padding:60px"><div style="font-size:48px;margin-bottom:16px">🔒</div><div class="fw700" style="font-size:18px">Accès restreint</div><div class="c-m" style="margin-top:8px">Seul l\'administrateur peut accéder à ce module.</div></div>';
+
+  return `<div class="fade-in">
+    <div class="card" style="border-top:3px solid var(--acc)">
+      <div class="card-title">⚙️ Administration — Gestion des utilisateurs <span class="role-badge role-admin" style="margin-left:8px">Admin</span></div>
+      <div class="c-m fs13" style="margin-bottom:20px">Vous êtes le seul administrateur de la plateforme. Vous pouvez ajouter, modifier ou supprimer des comptes utilisateurs.</div>
+      <table>
+        <thead><tr><th>Identifiant</th><th>Nom</th><th>Rôle</th><th>Poste</th><th>Mot de passe</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${USERS.map(u=>`<tr>
+            <td class="mono fs12 fw600">${u.username}</td>
+            <td class="fw600">${u.displayName}</td>
+            <td><span class="role-badge role-${u.role}">${u.role==='admin'?'Administrateur':u.role==='user'?'Utilisateur':'Lecteur'}</span></td>
+            <td class="c-m">${u.poste}</td>
+            <td class="mono fs12 c-d">${'•'.repeat(8)}</td>
+            <td>${u.role==='admin'?'<span class="fs11 c-d">Compte protégé</span>':`<button class="btn btn-ghost btn-sm" onclick="editUser('${u.id}')" style="margin-right:4px">✏️</button><button class="btn btn-sm" style="background:var(--err-g);color:var(--err);border:none" onclick="deleteUser('${u.id}')">🗑️</button>`}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div style="margin-top:20px;border-top:1px solid var(--brd);padding-top:20px">
+        <div class="fw700 fs14" style="margin-bottom:14px">➕ Ajouter un utilisateur</div>
+        <div class="grid-3" style="gap:12px">
+          <div><label for="new-username" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Identifiant</label><input class="input" id="new-username" placeholder="prenom.nom"></div>
+          <div><label for="new-display" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Nom complet</label><input class="input" id="new-display" placeholder="Prénom NOM"></div>
+          <div><label for="new-pass" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Mot de passe</label><input class="input" id="new-pass" type="password" placeholder="Min. 8 caractères"></div>
+          <div><label for="new-poste" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Poste</label><input class="input" id="new-poste" placeholder="Fonction"></div>
+          <div><label for="new-role" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Rôle</label>
+            <select class="input" id="new-role"><option value="user">Utilisateur (lecture/écriture)</option><option value="reader">Lecteur (lecture seule)</option></select></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-pri" onclick="addUser()">Créer le compte</button></div>
+        </div>
+        <div id="admin-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px"></div>
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--pri)">
+      <div class="card-title">🤖 Configuration de l'Assistant IA</div>
+      <div class="c-m fs13" style="margin-bottom:16px">Configurez la connexion à l'API Anthropic (Claude) pour activer l'assistant IA. La clé est stockée uniquement dans votre navigateur.</div>
+      <div class="grid-2" style="gap:12px">
+        <div>
+          <label for="api-key-input" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Clé API Anthropic</label>
+          <div style="position:relative">
+            <input class="input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." value="" style="font-family:var(--mono);padding-right:70px">
+            <button class="btn btn-ghost btn-sm" onclick="toggleApiKeyVisibility()" id="api-key-toggle" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 8px;font-size:11px;min-height:auto">👁️ Voir</button>
+          </div>
+          <div class="fs11 c-m" style="margin-top:4px" id="api-key-status">${getApiKey()?'✅ Clé enregistrée (masquée pour sécurité)':'❌ Aucune clé configurée'}</div>
+        </div>
+        <div>
+          <label for="api-model-select" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Modèle IA</label>
+          <select class="input" id="api-model-select">
+            <option value="claude-sonnet-4-20250514" ${getApiModel()==='claude-sonnet-4-20250514'?'selected':''}>Claude Sonnet 4 (rapide, recommandé)</option>
+            <option value="claude-opus-4-6" ${getApiModel()==='claude-opus-4-6'?'selected':''}>Claude Opus 4.6 (avancé)</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-pri" onclick="saveApiConfig()">💾 Enregistrer</button>
+        <button class="btn btn-ghost" onclick="testApiConnection()">🔌 Tester la connexion</button>
+        <button class="btn btn-sm" style="background:var(--err-g);color:var(--err);border:none" onclick="deleteApiKey()">🗑️ Supprimer la clé</button>
+        <span id="api-status" class="fs12"></span>
+      </div>
+      <div id="api-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px"></div>
+      <div style="margin-top:16px;padding:12px;background:var(--pri-g);border-radius:8px;border:1px solid rgba(59,130,246,0.2)">
+        <div class="fs12 fw700 c-pri" style="margin-bottom:6px">💡 Comment obtenir une clé API ?</div>
+        <div class="fs12 c-m" style="line-height:1.8">
+          1. Rendez-vous sur <strong>console.anthropic.com</strong><br>
+          2. Créez un compte ou connectez-vous<br>
+          3. Allez dans <strong>API Keys</strong> → <strong>Create Key</strong><br>
+          4. Copiez la clé et collez-la ci-dessus<br>
+          5. Crédit offert : 5$ pour les nouveaux comptes
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Politique de sécurité</div>
+      <div class="grid-2">
+        <div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center">
+            <div><div class="fw600 fs13">Rôle Administrateur</div><div class="fs11 c-m">Tous les droits : gestion utilisateurs, configuration SharePoint, import/export</div></div>
+            <span class="tag tag-acc">1 compte</span>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center">
+            <div><div class="fw600 fs13">Rôle Utilisateur</div><div class="fs11 c-m">Lecture, écriture, génération de documents, ajout de désordres</div></div>
+            <span class="tag tag-pri">${USERS.filter(u=>u.role==='user').length} comptes</span>
+          </div>
+          <div style="padding:10px 0;display:flex;justify-content:space-between;align-items:center">
+            <div><div class="fw600 fs13">Rôle Lecteur</div><div class="fs11 c-m">Consultation uniquement – aucune modification possible</div></div>
+            <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(139,92,246,0.15);color:#A78BFA;font-weight:600">${USERS.filter(u=>u.role==='reader').length} comptes</span>
+          </div>
+        </div>
+        <div style="padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--brd)">
+          <div class="fw700 fs13" style="margin-bottom:12px">🛡️ Règles de sécurité</div>
+          <div class="fs12 c-m" style="line-height:2">
+            ✅ Administrateur unique : <strong>damien.lhote</strong><br>
+            ✅ Mots de passe min. 8 caractères<br>
+            ✅ Rôle non modifiable pour le compte admin<br>
+            ✅ Suppression impossible du compte admin<br>
+            ✅ Clé API stockée dans sessionStorage (navigateur)<br>
+            ✅ Clé API visible uniquement par l'admin<br>
+            ✅ Déconnexion automatique après inactivité
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function attachAdminEvents() {
+  // Prevent accidental navigation while editing API key
+  const apiInput = document.getElementById('api-key-input');
+  if (apiInput) {
+    apiInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); saveApiConfig(); }
+    });
+    // Auto-focus helper text
+    apiInput.addEventListener('focus', () => {
+      apiInput.setAttribute('placeholder', 'Collez votre clé ici : sk-ant-api03-...');
+    });
+    apiInput.addEventListener('blur', () => {
+      apiInput.setAttribute('placeholder', 'sk-ant-api03-...');
+    });
+  }
+}
+
+function addUser() {
+  const username = document.getElementById('new-username')?.value.trim();
+  const display = document.getElementById('new-display')?.value.trim();
+  const pass = document.getElementById('new-pass')?.value;
+  const poste = document.getElementById('new-poste')?.value.trim();
+  const role = document.getElementById('new-role')?.value;
+  const msgEl = document.getElementById('admin-msg');
+
+  if (!username||!display||!pass||!poste) {
+    showAdminMsg('Tous les champs sont obligatoires.', true); return;
+  }
+  if (pass.length < 8) {
+    showAdminMsg('Le mot de passe doit contenir au moins 8 caractères.', true); return;
+  }
+  if (USERS.find(u=>u.username===username)) {
+    showAdminMsg('Cet identifiant existe déjà.', true); return;
+  }
+  const initials = display.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const colors = ['#3B82F6','#10B981','#8B5CF6','#F59E0B','#EC4899','#06B6D4'];
+  USERS.push({
+    id: 'u'+Date.now(), username, password: pass, displayName: display,
+    initials, role, color: colors[USERS.length % colors.length], poste
+  });
+  showAdminMsg(`✅ Compte "${username}" créé avec succès (rôle : ${role}).`, false);
+  setTimeout(()=>renderModule(), 1000);
+}
+
+function deleteUser(id) {
+  const u = USERS.find(x=>x.id===id);
+  if (!u || u.role==='admin') return;
+  if (!confirm(`Supprimer le compte "${u.displayName}" ?`)) return;
+  USERS = USERS.filter(x=>x.id!==id);
+  renderModule();
+}
+
+function editUser(id) {
+  const u = USERS.find(x=>x.id===id);
+  if (!u || u.role==='admin') return;
+  const newPass = prompt(`Nouveau mot de passe pour ${u.displayName} (laisser vide pour ne pas changer) :`);
+  if (newPass !== null && newPass.length > 0) {
+    if (newPass.length < 8) { alert('Mot de passe trop court (min. 8 caractères)'); return; }
+    u.password = newPass;
+    alert('Mot de passe mis à jour.');
+  }
+  const newRole = prompt(`Rôle pour ${u.displayName} ? (user / reader)`, u.role);
+  if (newRole && ['user','reader'].includes(newRole)) {
+    u.role = newRole;
+    renderModule();
+  }
+}
+
+function showAdminMsg(msg, isError) {
+  const el = document.getElementById('admin-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = isError ? 'var(--err-g)' : 'var(--ok-g)';
+  el.style.color = isError ? 'var(--err)' : 'var(--ok)';
+  el.style.border = `1px solid ${isError ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`;
+  el.textContent = msg;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ACCESSIBILITY: Post-render enhancements
+// ═══════════════════════════════════════════════════════════════════
+const _origRenderModule = renderModule;
+renderModule = function() {
+  _origRenderModule();
+  // Make all clickable rows keyboard-accessible
+  document.querySelectorAll('tr.clickable').forEach(tr => {
+    tr.setAttribute('tabindex', '0');
+    tr.setAttribute('role', 'link');
+    tr.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tr.click(); }
+    });
+  });
+  // Make all back links keyboard-accessible
+  document.querySelectorAll('[onclick*="selectedOuvrage=null"], [onclick*="selectedDesordre=null"]').forEach(el => {
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'link');
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+  });
+  // Add caption to tables for screen readers
+  document.querySelectorAll('table').forEach((t, i) => {
+    if (!t.querySelector('caption')) {
+      const cap = document.createElement('caption');
+      cap.className = 'sr-only';
+      cap.textContent = 'Tableau de données';
+      t.prepend(cap);
+    }
+  });
+  // Ensure all toggle buttons are keyboard-accessible
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.setAttribute('tabindex', '0');
+    t.setAttribute('role', 'switch');
+    t.setAttribute('aria-checked', t.classList.contains('on'));
+    t.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); }
+    });
+  });
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// API CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════
+function getApiKey() {
+  try { return sessionStorage.getItem('oa-api-key') || ''; } catch(e) { return ''; }
+}
+function getApiModel() {
+  try { return sessionStorage.getItem('oa-api-model') || 'claude-sonnet-4-20250514'; } catch(e) { return 'claude-sonnet-4-20250514'; }
+}
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('api-key-input');
+  const btn = document.getElementById('api-key-toggle');
+  if (!input || !btn) return;
+  if (input.type === 'password') {
+    // Show the stored key in the field
+    const stored = getApiKey();
+    if (stored && !input.value) input.value = stored;
+    input.type = 'text';
+    btn.textContent = '🔒 Masquer';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️ Voir';
+  }
+}
+function saveApiConfig() {
+  const keyInput = document.getElementById('api-key-input');
+  const modelSelect = document.getElementById('api-model-select');
+  const msgEl = document.getElementById('api-msg');
+  const statusEl = document.getElementById('api-key-status');
+  if (!keyInput || !modelSelect) return;
+
+  const key = keyInput.value.trim();
+  if (key) {
+    try { sessionStorage.setItem('oa-api-key', key); } catch(e) {}
+    keyInput.value = '';
+    keyInput.type = 'password';
+    const toggleBtn = document.getElementById('api-key-toggle');
+    if (toggleBtn) toggleBtn.textContent = '👁️ Voir';
+    if (statusEl) statusEl.innerHTML = '✅ Clé enregistrée (masquée pour sécurité)';
+  }
+  try { sessionStorage.setItem('oa-api-model', modelSelect.value); } catch(e) {}
+
+  if (msgEl) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = key ? 'var(--ok-g)' : 'var(--acc-g)';
+    msgEl.style.color = key ? 'var(--ok)' : 'var(--acc)';
+    msgEl.style.border = '1px solid ' + (key ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)');
+    msgEl.textContent = key ? '✅ Clé API et modèle enregistrés. L\'assistant IA est prêt.' : '✅ Modèle mis à jour. (Clé inchangée)';
+    setTimeout(()=>{ msgEl.style.display='none'; }, 4000);
+  }
+}
+function deleteApiKey() {
+  if (!confirm('Supprimer la clé API ? L\'assistant IA sera désactivé.')) return;
+  try { sessionStorage.removeItem('oa-api-key'); } catch(e) {}
+  const statusEl = document.getElementById('api-key-status');
+  if (statusEl) statusEl.innerHTML = '❌ Aucune clé configurée';
+  const msgEl = document.getElementById('api-msg');
+  if (msgEl) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'var(--err-g)';
+    msgEl.style.color = 'var(--err)';
+    msgEl.style.border = '1px solid rgba(239,68,68,0.3)';
+    msgEl.textContent = '🗑️ Clé API supprimée.';
+    setTimeout(()=>{ msgEl.style.display='none'; }, 3000);
+  }
+  const input = document.getElementById('api-key-input');
+  if (input) input.value = '';
+}
+async function testApiConnection() {
+  const statusEl = document.getElementById('api-status');
+  const key = getApiKey();
+  if (!key) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Aucune clé API configurée</span>';
+    return;
+  }
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--acc)" class="pulse">⏳ Test en cours...</span>';
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: getApiModel(),
+        max_tokens: 50,
+        messages: [{ role: 'user', content: 'Réponds uniquement "OK connecté".' }]
+      })
+    });
+    if (resp.ok) {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--ok)">✅ Connexion réussie – Modèle : ' + getApiModel() + '</span>';
+    } else {
+      const err = await resp.json().catch(()=>({}));
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Erreur ' + resp.status + ' : ' + (err.error?.message||'Vérifiez la clé') + '</span>';
+    }
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Erreur réseau : ' + e.message + '</span>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SHAREPOINT IFRAME BRIDGE & SESSION PERSISTENCE
+// ═══════════════════════════════════════════════════════════════════
+// Notify SharePoint parent frame of app state
+function notifyParent(event, data) {
+  try { if (window.parent !== window) window.parent.postMessage({source:'oa-expert', event, data}, '*'); } catch(e) {}
+}
+// Session persistence (survives page refresh within iframe)
+function saveSession() {
+  if (!currentUser) return;
+  try { sessionStorage.setItem('oa-session', JSON.stringify({username:currentUser.username,module:activeModule})); } catch(e) {}
+}
+function restoreSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('oa-session'));
+    if (s?.username) {
+      const u = USERS.find(x=>x.username===s.username);
+      if (u) { currentUser=u; document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='block'; buildSidebar(); navigate(s.module||'dashboard'); return true; }
+    }
+  } catch(e) {}
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+if (!restoreSession()) {
+  document.getElementById('login-user').focus();
+}
+notifyParent('ready', {version:'2.0'});
+</script>
+</body>
+</html>
