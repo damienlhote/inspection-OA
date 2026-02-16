@@ -969,24 +969,13 @@ function attachChatEvents() {
 }
 async function sendChat() {
   const el = document.getElementById('chat-input');
-  if(!el||!el.value.trim()||chatLoading) return;
+  if(!el || !el.value.trim() || chatLoading) return;
   const msg = el.value.trim();
-  chatMessages.push({role:'user',content:msg});
-  el.value = '';
-  chatLoading = true;
-  renderModule();
-
-  const apiKey = getApiKey();
-
-  // If no API key configured, show helpful message
-  if (!apiKey) {
-    chatMessages.push({role:'ai', content:
-      '⚠️ **Clé API non configurée**\n\nPour activer l\'assistant IA, demandez à l\'administrateur de configurer la clé API Anthropic dans le module **Administration** → **Configuration de l\'Assistant IA**.\n\nEn attendant, je peux vous orienter vers les modules de la plateforme :\n• **Base normative** — Recherche dans les ' + NORMS_DB.length + ' références\n• **Désordres** — Suivi de l\'évolution des avaries\n• **Documents** — Modèles de PVID, expertises, mémoires'
-    });
-    chatLoading = false;
-    renderModule();
-    return;
-  }
+  chatMessages.push({role:'user', content: msg});
+  el.value=''; chatLoading = true; renderModule();
+  chatMessages.push({role:'ai', content: '⚡ Mode Copilot activé. En attente de l'hôte…'});
+  chatLoading = false; renderModule();
+}
 
   try {
     // Build API conversation history (skip the initial greeting)
@@ -1242,12 +1231,7 @@ function renderAdmin() {
   </div>`;
 }
 
-function attachAdminEvents() {
-  // Prevent accidental navigation while editing API key
-  const apiInput = document.getElementById('api-key-input');
-  if (apiInput) {
-    apiInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); saveApiConfig(); }
+function attachAdminEvents() { /* no-op: Copilot only */ }
     });
     // Auto-focus helper text
     apiInput.addEventListener('focus', () => {
@@ -1365,37 +1349,9 @@ renderModule = function() {
 // ═══════════════════════════════════════════════════════════════════
 // API CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════
-function getApiKey() {
-  try { return sessionStorage.getItem('oa-api-key') || ''; } catch(e) { return ''; }
 }
-function getApiModel() {
-  try { return sessionStorage.getItem('oa-api-model') || 'claude-sonnet-4-20250514'; } catch(e) { return 'claude-sonnet-4-20250514'; }
 }
-function toggleApiKeyVisibility() {
-  const input = document.getElementById('api-key-input');
-  const btn = document.getElementById('api-key-toggle');
-  if (!input || !btn) return;
-  if (input.type === 'password') {
-    // Show the stored key in the field
-    const stored = getApiKey();
-    if (stored && !input.value) input.value = stored;
-    input.type = 'text';
-    btn.textContent = '🔒 Masquer';
-  } else {
-    input.type = 'password';
-    btn.textContent = '👁️ Voir';
-  }
 }
-function saveApiConfig() {
-  const keyInput = document.getElementById('api-key-input');
-  const modelSelect = document.getElementById('api-model-select');
-  const msgEl = document.getElementById('api-msg');
-  const statusEl = document.getElementById('api-key-status');
-  if (!keyInput || !modelSelect) return;
-
-  const key = keyInput.value.trim();
-  if (key) {
-    try { sessionStorage.setItem('oa-api-key', key); } catch(e) {}
     keyInput.value = '';
     keyInput.type = 'password';
     const toggleBtn = document.getElementById('api-key-toggle');
@@ -1413,9 +1369,6 @@ function saveApiConfig() {
     setTimeout(()=>{ msgEl.style.display='none'; }, 4000);
   }
 }
-function deleteApiKey() {
-  if (!confirm('Supprimer la clé API ? L\'assistant IA sera désactivé.')) return;
-  try { sessionStorage.removeItem('oa-api-key'); } catch(e) {}
   const statusEl = document.getElementById('api-key-status');
   if (statusEl) statusEl.innerHTML = '❌ Aucune clé configurée';
   const msgEl = document.getElementById('api-msg');
@@ -1430,14 +1383,7 @@ function deleteApiKey() {
   const input = document.getElementById('api-key-input');
   if (input) input.value = '';
 }
-async function testApiConnection() {
-  const statusEl = document.getElementById('api-status');
-  const key = getApiKey();
-  if (!key) {
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Aucune clé API configurée</span>';
-    return;
-  }
-  if (statusEl) statusEl.innerHTML = '<span style="color:var(--acc)" class="pulse">⏳ Test en cours...</span>';
+async   if (statusEl) statusEl.innerHTML = '<span style="color:var(--acc)" class="pulse">⏳ Test en cours...</span>';
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
