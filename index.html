@@ -1176,19 +1176,24 @@ function renderAdmin() {
       <div class="grid-2" style="gap:12px">
         <div>
           <label for="api-key-input" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Clé API Anthropic</label>
-          <input class="input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." value="${getApiKey()?'••••••••••••••••••••••••••':''}" style="font-family:var(--mono)">
+          <div style="position:relative">
+            <input class="input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." value="" style="font-family:var(--mono);padding-right:70px">
+            <button class="btn btn-ghost btn-sm" onclick="toggleApiKeyVisibility()" id="api-key-toggle" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:4px 8px;font-size:11px;min-height:auto">👁️ Voir</button>
+          </div>
+          <div class="fs11 c-m" style="margin-top:4px" id="api-key-status">${getApiKey()?'✅ Clé enregistrée (masquée pour sécurité)':'❌ Aucune clé configurée'}</div>
         </div>
         <div>
-          <label class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Modèle IA</label>
+          <label for="api-model-select" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Modèle IA</label>
           <select class="input" id="api-model-select">
             <option value="claude-sonnet-4-20250514" ${getApiModel()==='claude-sonnet-4-20250514'?'selected':''}>Claude Sonnet 4 (rapide, recommandé)</option>
             <option value="claude-opus-4-6" ${getApiModel()==='claude-opus-4-6'?'selected':''}>Claude Opus 4.6 (avancé)</option>
           </select>
         </div>
       </div>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-pri" onclick="saveApiConfig()">💾 Enregistrer</button>
         <button class="btn btn-ghost" onclick="testApiConnection()">🔌 Tester la connexion</button>
+        <button class="btn btn-sm" style="background:var(--err-g);color:var(--err);border:none" onclick="deleteApiKey()">🗑️ Supprimer la clé</button>
         <span id="api-status" class="fs12"></span>
       </div>
       <div id="api-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px"></div>
@@ -1237,7 +1242,22 @@ function renderAdmin() {
   </div>`;
 }
 
-function attachAdminEvents() {}
+function attachAdminEvents() {
+  // Prevent accidental navigation while editing API key
+  const apiInput = document.getElementById('api-key-input');
+  if (apiInput) {
+    apiInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); saveApiConfig(); }
+    });
+    // Auto-focus helper text
+    apiInput.addEventListener('focus', () => {
+      apiInput.setAttribute('placeholder', 'Collez votre clé ici : sk-ant-api03-...');
+    });
+    apiInput.addEventListener('blur', () => {
+      apiInput.setAttribute('placeholder', 'sk-ant-api03-...');
+    });
+  }
+}
 
 function addUser() {
   const username = document.getElementById('new-username')?.value.trim();
@@ -1351,26 +1371,64 @@ function getApiKey() {
 function getApiModel() {
   try { return sessionStorage.getItem('oa-api-model') || 'claude-sonnet-4-20250514'; } catch(e) { return 'claude-sonnet-4-20250514'; }
 }
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('api-key-input');
+  const btn = document.getElementById('api-key-toggle');
+  if (!input || !btn) return;
+  if (input.type === 'password') {
+    // Show the stored key in the field
+    const stored = getApiKey();
+    if (stored && !input.value) input.value = stored;
+    input.type = 'text';
+    btn.textContent = '🔒 Masquer';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️ Voir';
+  }
+}
 function saveApiConfig() {
   const keyInput = document.getElementById('api-key-input');
   const modelSelect = document.getElementById('api-model-select');
   const msgEl = document.getElementById('api-msg');
+  const statusEl = document.getElementById('api-key-status');
   if (!keyInput || !modelSelect) return;
+
   const key = keyInput.value.trim();
-  // Don't overwrite with masked value
-  if (key && !key.startsWith('••')) {
+  if (key) {
     try { sessionStorage.setItem('oa-api-key', key); } catch(e) {}
-    keyInput.value = '••••••••••••••••••••••••••';
+    keyInput.value = '';
+    keyInput.type = 'password';
+    const toggleBtn = document.getElementById('api-key-toggle');
+    if (toggleBtn) toggleBtn.textContent = '👁️ Voir';
+    if (statusEl) statusEl.innerHTML = '✅ Clé enregistrée (masquée pour sécurité)';
   }
   try { sessionStorage.setItem('oa-api-model', modelSelect.value); } catch(e) {}
+
   if (msgEl) {
     msgEl.style.display = 'block';
-    msgEl.style.background = 'var(--ok-g)';
-    msgEl.style.color = 'var(--ok)';
-    msgEl.style.border = '1px solid rgba(16,185,129,0.3)';
-    msgEl.textContent = '✅ Configuration enregistrée. L\'assistant IA est prêt.';
+    msgEl.style.background = key ? 'var(--ok-g)' : 'var(--acc-g)';
+    msgEl.style.color = key ? 'var(--ok)' : 'var(--acc)';
+    msgEl.style.border = '1px solid ' + (key ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)');
+    msgEl.textContent = key ? '✅ Clé API et modèle enregistrés. L\'assistant IA est prêt.' : '✅ Modèle mis à jour. (Clé inchangée)';
+    setTimeout(()=>{ msgEl.style.display='none'; }, 4000);
+  }
+}
+function deleteApiKey() {
+  if (!confirm('Supprimer la clé API ? L\'assistant IA sera désactivé.')) return;
+  try { sessionStorage.removeItem('oa-api-key'); } catch(e) {}
+  const statusEl = document.getElementById('api-key-status');
+  if (statusEl) statusEl.innerHTML = '❌ Aucune clé configurée';
+  const msgEl = document.getElementById('api-msg');
+  if (msgEl) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'var(--err-g)';
+    msgEl.style.color = 'var(--err)';
+    msgEl.style.border = '1px solid rgba(239,68,68,0.3)';
+    msgEl.textContent = '🗑️ Clé API supprimée.';
     setTimeout(()=>{ msgEl.style.display='none'; }, 3000);
   }
+  const input = document.getElementById('api-key-input');
+  if (input) input.value = '';
 }
 async function testApiConnection() {
   const statusEl = document.getElementById('api-status');
