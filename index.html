@@ -190,8 +190,13 @@ tr.clickable:hover{background:var(--card-h)}
 /* Animations */
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .fade-in{animation:fadeIn .4s ease-out}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.pulse{animation:pulse 1.5s infinite}
+.pulse span:nth-child(2){animation:pulse 1.5s infinite .3s}
+.pulse span:nth-child(3){animation:pulse 1.5s infinite .6s}
+/* Loading state */
+.chat-msg.ai .loading-dots{display:flex;gap:4px;align-items:center}
+input:disabled,button:disabled{opacity:0.5;cursor:not-allowed}
 
 /* ─── ACCESSIBILITY ─── */
 /* Skip navigation */
@@ -408,8 +413,64 @@ const MODULES = [
 ];
 
 let chatMessages = [
-  {role:"ai",content:"Bonjour ! Je suis votre assistant IA spécialisé en ouvrages d'art. Je peux vous aider à rédiger des rapports d'inspection, analyser des désordres, consulter les normes CEREMA/SNCF/ITSEOA, ou préparer des mémoires techniques.\n\nComment puis-je vous aider ?"}
+  {role:"ai",content:"Bonjour ! Je suis votre assistant IA spécialisé en ouvrages d'art. Je maîtrise les référentiels ITSEOA, CEREMA, SNCF Réseau, LCPC, CETU, SETRA, IMGC et les Eurocodes.\n\nJe peux vous aider à :\n• Rédiger des PVID, rapports d'expertise, mémoires techniques\n• Analyser des désordres et leur évolution\n• Consulter et interpréter les normes applicables\n• Préparer des réponses à appels d'offres\n• Élaborer des plannings d'intervention\n\nComment puis-je vous aider ?"}
 ];
+let chatLoading = false;
+
+// ─── AI SYSTEM PROMPT ───
+const AI_SYSTEM_PROMPT = `Tu es OA Expert IA, un assistant spécialisé de haut niveau en inspection, maintenance et réparation d'ouvrages d'art (ponts, viaducs, passerelles, tunnels, murs de soutènement).
+
+DOMAINES D'EXPERTISE :
+- Inspection détaillée (PVID, IDP, VST) selon ITSEOA et IN 1256 SNCF Réseau
+- Cotation IQOA (routier) et IN 1260 (ferroviaire)
+- Pathologies des structures : fissuration, corrosion, fatigue, flambement, écaillage béton, décollement peinture
+- Réparation : rivetage à chaud, remplacement d'appareils d'appui, renforcement par tôles, béton projeté, précontrainte extérieure
+- Protection anticorrosion selon ISO 12944, Fascicule 56 CCTG, IN 00036 SNCF
+- Calculs selon Eurocodes (EN 1991, 1992, 1993) et normes NF
+- Rédaction de mémoires techniques pour appels d'offres
+- Planning de travaux avec contraintes d'exploitation ferroviaire (ITC, ralentissements) et routière (basculements)
+
+BASE NORMATIVE INTÉGRÉE :
+ITSEOA : Fascicules 0 (dispositions générales), 2 (maçonnerie), 3 (béton/fondations), 10 (poutrelles enrobées), 11 (ponts métalliques), 12 (haubans/suspendus), 13 (bois), 21 (appareils d'appui), 32 (murs soutènement), 40 (tunnels)
+CEREMA : Guides IQOA ponts et murs, guide protection anticorrosion, guide fatigue, dalles orthotropes, surveillance et entretien courant
+SNCF Réseau : IN 1256 (surveillance OA), IN 1260 (cotation désordres), IN 1130 (sécurité travaux), IN 2089 (pose voie sur OA), IN 3937 (formation), IN 7012/IN 00035 (réparations ponts métalliques RPM), IN 00036 (protection anticorrosion), MT 1253 (surveillance)
+SETRA : Appareils d'appui élastomère, précontrainte extérieure, joints de chaussée
+LCPC : Bétons projetés, diagnostic béton, auscultation CND
+CETU : Dossier pilote tunnels, diagnostic tunnels
+IMGC : Instruction ministérielle gestion patrimoine
+STRRES : RECO N°4 réparation et renforcement
+Eurocodes : EN 1090-2, EN 1504, EN 1991/1992/1993, ISO 12944, ISO 8501-1
+CCTG : Fascicules 56 (anticorrosion), 65 (béton armé), 66 (ouvrages métalliques)
+
+OUVRAGES SUIVIS SUR LA PLATEFORME :
+1. Pont de Pontorson (PK 342+120) – Pont-rail métallique – IQOA 3U – 12 avaries – Ferroviaire
+2. Viaduc de la Sioule (A89) – Viaduc routier mixte – IQOA 2E – 8 avaries – Routier
+3. Pont Long Biên (Hanoï) – Pont métallique historique – IQOA 3U – 47 avaries – International
+4. Passerelle de Rosny-sous-Bois – Passerelle métallique – IQOA 2 – 6 avaries – Ferroviaire
+5. Pont de Neufchelles (PK 68+450) – Pont-rail béton – IQOA 2E – 4 avaries – Ferroviaire
+
+DÉSORDRES ACTIFS :
+- Pontorson : Fissure de fatigue poutre PG (3U, 1.02mm, progression +410%), Corrosion rivets cornière d'âme (2E, 35% surface)
+- Sioule : Écaillage béton dalle BA (2, 1.2m²)
+- Long Biên : Flambement local travée 5 (3U, 12mm)
+- Rosny : Déformation garde-corps (2E, 8mm)
+
+ÉQUIPE :
+- Damien LHOTE (Chef de projet OA, administrateur)
+- Louis AURIER (Inspecteur OA)
+- Hamza OUABDEL MOUMEN (Inspecteur OA)
+- Dalila SEGMANE (Inspecteur OA)
+
+RÈGLES DE RÉPONSE :
+- Réponds toujours en français professionnel technique
+- Cite systématiquement les références normatives applicables
+- Structure tes réponses clairement
+- Pour les rapports et documents, propose une structure détaillée avec les rubriques attendues
+- Pour les questions sur les désordres, inclus l'analyse pathologique, les causes probables et les préconisations
+- Adapte le référentiel normatif au client (ferroviaire = SNCF/IMGC, routier = CEREMA/SETRA/ITSEOA, tunnels = CETU)
+- Tu peux utiliser le formatage Markdown (gras, listes, titres)
+- Sois précis, concret et opérationnel dans tes réponses`;
+
 
 // ═══════════════════════════════════════════════════════════════════
 // AUTH
@@ -877,15 +938,26 @@ function renderAI() {
           ${m.role==='ai'?'<div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 OA Expert IA</div>':''}
           ${m.content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}
         </div>`).join('')}
+        ${chatLoading?`<div class="chat-msg ai" style="align-self:flex-start" aria-label="L'assistant réfléchit">
+          <div class="fs11 c-acc fw700" style="margin-bottom:6px" aria-hidden="true">🤖 OA Expert IA</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pulse" style="display:inline-flex;gap:4px">
+              <span style="width:6px;height:6px;border-radius:3px;background:var(--pri);display:inline-block"></span>
+              <span style="width:6px;height:6px;border-radius:3px;background:var(--pri);display:inline-block;animation-delay:.3s"></span>
+              <span style="width:6px;height:6px;border-radius:3px;background:var(--pri);display:inline-block;animation-delay:.6s"></span>
+            </span>
+            <span class="fs12 c-m">Analyse en cours...</span>
+          </div>
+        </div>`:''}
       </div>
     </div>
     <div class="chat-input-row">
       <label for="chat-input" class="sr-only">Votre question</label>
-      <input class="input" id="chat-input" style="flex:1;border-color:var(--brd-l)" placeholder="Posez votre question... (normes, rapports, diagnostics, mémoires...)" aria-label="Saisir votre question">
-      <button class="btn btn-pri" onclick="sendChat()" style="padding:10px 18px" aria-label="Envoyer le message">➤</button>
+      <input class="input" id="chat-input" style="flex:1;border-color:var(--brd-l)" placeholder="Posez votre question... (normes, rapports, diagnostics, mémoires...)" aria-label="Saisir votre question" ${chatLoading?'disabled':''}>
+      <button class="btn btn-pri" onclick="sendChat()" style="padding:10px 18px" aria-label="Envoyer le message" ${chatLoading?'disabled style="padding:10px 18px;opacity:0.5"':''}>➤</button>
     </div>
     <div class="chat-suggestions" role="group" aria-label="Suggestions de questions">
-      ${['Cotation IQOA ?','Générer un PVID','Normes applicables ?','Mémoire technique AO','Planning travaux'].map(q=>`<span class="pill" style="font-size:11px" onclick="document.getElementById('chat-input').value='${q}';sendChat()" role="button" tabindex="0" aria-label="Poser la question : ${q}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('chat-input').value='${q}';sendChat()}">${q}</span>`).join('')}
+      ${['Cotation IQOA ?','Rédiger un PVID pour Pontorson','Normes applicables pont métallique','Mémoire technique AO','Analyser la fissure poutre PG Pontorson','Planning travaux réparation'].map(q=>`<span class="pill" style="font-size:11px" onclick="document.getElementById('chat-input').value='${q}';sendChat()" role="button" tabindex="0" aria-label="Poser la question : ${q}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('chat-input').value='${q}';sendChat()}">${q}</span>`).join('')}
     </div>
   </div>`;
 }
@@ -895,25 +967,89 @@ function attachChatEvents() {
   const msgs = document.getElementById('chat-messages');
   if(msgs) msgs.scrollTop = msgs.scrollHeight;
 }
-function sendChat() {
+async function sendChat() {
   const el = document.getElementById('chat-input');
-  if(!el||!el.value.trim()) return;
+  if(!el||!el.value.trim()||chatLoading) return;
   const msg = el.value.trim();
   chatMessages.push({role:'user',content:msg});
   el.value = '';
+  chatLoading = true;
   renderModule();
-  setTimeout(()=>{
-    const lower = msg.toLowerCase();
-    let r = '';
-    if(lower.includes('iqoa')||lower.includes('cotation')) r="La cotation IQOA est le système de classification :\n\n**1** – Bon état apparent\n**2** – Défauts mineurs\n**2E** – Entretien spécialisé nécessaire\n**3** – Dégradation structurelle significative\n**3U** – Urgence – sécurité compromise\n\nLes fascicules ITSEOA et le guide IQOA du CEREMA détaillent la méthodologie. Pour le réseau ferroviaire, le système IN 1260 de SNCF Réseau s'applique.";
-    else if(lower.includes('rapport')||lower.includes('pvid')||lower.includes('inspection')) r="Je peux générer plusieurs types de rapports conformes aux normes :\n\n📋 **PVID** – Procès-Verbal d'Inspection Détaillée (ITSEOA)\n📋 **Rapport d'expertise** – Analyse pathologique\n📋 **Rapport VST** – Visite Systématique Technique (SNCF)\n📋 **Compte-rendu IDP** – Inspection Détaillée Périodique\n\nChaque rapport intègre les références normatives selon le gestionnaire.";
-    else if(lower.includes('norme')||lower.includes('fascicule')||lower.includes('itseoa')) r="La base normative contient **"+NORMS_DB.length+" références** :\n\n**ITSEOA** – Fascicules 0 à 40\n**CEREMA** – Guides IQOA, protection, fatigue\n**SNCF Réseau** – IN 1256, 1260, 7012, 00035, 00036\n**Eurocodes** – EN 1090-2, EN 1504, EC1/2/3\n**CCTG** – Fascicules 56, 65, 66\n**LCPC/CETU** – Diagnostics, tunnels";
-    else if(lower.includes('mémoire')||lower.includes('appel')||lower.includes('ao')) r="Structure type d'un **mémoire technique** :\n\n1. **Présentation** et références\n2. **Compréhension de la mission**\n3. **Méthodologie d'intervention**\n4. **Moyens humains et matériels**\n5. **Planning prévisionnel** (Gantt)\n6. **Sécurité** – PPSPS\n7. **Démarche qualité** – PAQ\n8. **Références normatives**\n\nFournissez le DCE/CCTP pour une trame complète.";
-    else if(lower.includes('planning')||lower.includes('gantt')) r="Je peux créer :\n\n📅 **Planning d'inspection** – Campagnes de visite\n📅 **Planning travaux** – Phasage avec ITC/ralentissements\n📅 **Planning études** – EP → AVP → PRO → DCE → EXE\n📅 **Planning maintenance** – Programmation pluriannuelle\n\nContraintes intégrées automatiquement (ferroviaire : fenêtres, routier : basculements).";
-    else r="En tant qu'assistant OA, je peux vous accompagner sur :\n\n🔍 **Inspections** – Rédaction de PVID, relevés\n📊 **Analyses** – Évolution des avaries, diagnostics\n📐 **Calculs** – Vérifications Eurocodes\n📝 **Documents** – Rapports, mémoires, CCTP\n📅 **Planning** – Phasage, Gantt, coordination\n\nPrécisez votre besoin et le type d'ouvrage.";
-    chatMessages.push({role:'ai',content:r});
+
+  const apiKey = getApiKey();
+
+  // If no API key configured, show helpful message
+  if (!apiKey) {
+    chatMessages.push({role:'ai', content:
+      '⚠️ **Clé API non configurée**\n\nPour activer l\'assistant IA, demandez à l\'administrateur de configurer la clé API Anthropic dans le module **Administration** → **Configuration de l\'Assistant IA**.\n\nEn attendant, je peux vous orienter vers les modules de la plateforme :\n• **Base normative** — Recherche dans les ' + NORMS_DB.length + ' références\n• **Désordres** — Suivi de l\'évolution des avaries\n• **Documents** — Modèles de PVID, expertises, mémoires'
+    });
+    chatLoading = false;
     renderModule();
-  },600);
+    return;
+  }
+
+  try {
+    // Build API conversation history (skip the initial greeting)
+    const apiMessages = chatMessages
+      .filter(m => m.role === 'user' || m.role === 'ai')
+      .slice(1) // skip initial greeting
+      .map(m => ({
+        role: m.role === 'ai' ? 'assistant' : 'user',
+        content: m.content
+      }));
+
+    // Ensure conversation starts with user message
+    if (apiMessages.length === 0 || apiMessages[0].role !== 'user') {
+      apiMessages.unshift({ role: 'user', content: msg });
+    }
+
+    // Ensure alternating roles (API requirement)
+    const cleanMessages = [];
+    for (const m of apiMessages) {
+      if (cleanMessages.length === 0 || cleanMessages[cleanMessages.length-1].role !== m.role) {
+        cleanMessages.push(m);
+      } else {
+        cleanMessages[cleanMessages.length-1].content += '\n' + m.content;
+      }
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: getApiModel(),
+        max_tokens: 4096,
+        system: AI_SYSTEM_PROMPT,
+        messages: cleanMessages
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(()=>({}));
+      throw new Error(errData.error?.message || 'Erreur API (' + response.status + ')');
+    }
+
+    const data = await response.json();
+    const aiText = data.content
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('\n');
+
+    chatMessages.push({role:'ai', content: aiText || 'Réponse vide reçue.'});
+  } catch(err) {
+    console.error('OA Expert IA Error:', err);
+    chatMessages.push({role:'ai', content:
+      '⚠️ **Erreur de connexion à l\'IA**\n\n' + err.message + '\n\nVérifiez :\n• La clé API dans **Administration** → **Configuration IA**\n• Votre connexion internet\n• Le bouton **Tester la connexion** pour diagnostiquer'
+    });
+  }
+
+  chatLoading = false;
+  renderModule();
 }
 
 // ─── SHAREPOINT ───
@@ -1034,6 +1170,39 @@ function renderAdmin() {
         <div id="admin-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px"></div>
       </div>
     </div>
+    <div class="card" style="border-top:3px solid var(--pri)">
+      <div class="card-title">🤖 Configuration de l'Assistant IA</div>
+      <div class="c-m fs13" style="margin-bottom:16px">Configurez la connexion à l'API Anthropic (Claude) pour activer l'assistant IA. La clé est stockée uniquement dans votre navigateur.</div>
+      <div class="grid-2" style="gap:12px">
+        <div>
+          <label for="api-key-input" class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Clé API Anthropic</label>
+          <input class="input" id="api-key-input" type="password" placeholder="sk-ant-api03-..." value="${getApiKey()?'••••••••••••••••••••••••••':''}" style="font-family:var(--mono)">
+        </div>
+        <div>
+          <label class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Modèle IA</label>
+          <select class="input" id="api-model-select">
+            <option value="claude-sonnet-4-20250514" ${getApiModel()==='claude-sonnet-4-20250514'?'selected':''}>Claude Sonnet 4 (rapide, recommandé)</option>
+            <option value="claude-opus-4-6" ${getApiModel()==='claude-opus-4-6'?'selected':''}>Claude Opus 4.6 (avancé)</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+        <button class="btn btn-pri" onclick="saveApiConfig()">💾 Enregistrer</button>
+        <button class="btn btn-ghost" onclick="testApiConnection()">🔌 Tester la connexion</button>
+        <span id="api-status" class="fs12"></span>
+      </div>
+      <div id="api-msg" style="display:none;margin-top:12px;padding:10px;border-radius:8px;font-size:13px"></div>
+      <div style="margin-top:16px;padding:12px;background:var(--pri-g);border-radius:8px;border:1px solid rgba(59,130,246,0.2)">
+        <div class="fs12 fw700 c-pri" style="margin-bottom:6px">💡 Comment obtenir une clé API ?</div>
+        <div class="fs12 c-m" style="line-height:1.8">
+          1. Rendez-vous sur <strong>console.anthropic.com</strong><br>
+          2. Créez un compte ou connectez-vous<br>
+          3. Allez dans <strong>API Keys</strong> → <strong>Create Key</strong><br>
+          4. Copiez la clé et collez-la ci-dessus<br>
+          5. Crédit offert : 5$ pour les nouveaux comptes
+        </div>
+      </div>
+    </div>
     <div class="card">
       <div class="card-title">🔐 Politique de sécurité</div>
       <div class="grid-2">
@@ -1058,7 +1227,8 @@ function renderAdmin() {
             ✅ Mots de passe min. 8 caractères<br>
             ✅ Rôle non modifiable pour le compte admin<br>
             ✅ Suppression impossible du compte admin<br>
-            ✅ Journal d'activité sur toutes les actions<br>
+            ✅ Clé API stockée dans sessionStorage (navigateur)<br>
+            ✅ Clé API visible uniquement par l'admin<br>
             ✅ Déconnexion automatique après inactivité
           </div>
         </div>
@@ -1171,6 +1341,70 @@ renderModule = function() {
     });
   });
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// API CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════
+function getApiKey() {
+  try { return sessionStorage.getItem('oa-api-key') || ''; } catch(e) { return ''; }
+}
+function getApiModel() {
+  try { return sessionStorage.getItem('oa-api-model') || 'claude-sonnet-4-20250514'; } catch(e) { return 'claude-sonnet-4-20250514'; }
+}
+function saveApiConfig() {
+  const keyInput = document.getElementById('api-key-input');
+  const modelSelect = document.getElementById('api-model-select');
+  const msgEl = document.getElementById('api-msg');
+  if (!keyInput || !modelSelect) return;
+  const key = keyInput.value.trim();
+  // Don't overwrite with masked value
+  if (key && !key.startsWith('••')) {
+    try { sessionStorage.setItem('oa-api-key', key); } catch(e) {}
+    keyInput.value = '••••••••••••••••••••••••••';
+  }
+  try { sessionStorage.setItem('oa-api-model', modelSelect.value); } catch(e) {}
+  if (msgEl) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'var(--ok-g)';
+    msgEl.style.color = 'var(--ok)';
+    msgEl.style.border = '1px solid rgba(16,185,129,0.3)';
+    msgEl.textContent = '✅ Configuration enregistrée. L\'assistant IA est prêt.';
+    setTimeout(()=>{ msgEl.style.display='none'; }, 3000);
+  }
+}
+async function testApiConnection() {
+  const statusEl = document.getElementById('api-status');
+  const key = getApiKey();
+  if (!key) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Aucune clé API configurée</span>';
+    return;
+  }
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--acc)" class="pulse">⏳ Test en cours...</span>';
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: getApiModel(),
+        max_tokens: 50,
+        messages: [{ role: 'user', content: 'Réponds uniquement "OK connecté".' }]
+      })
+    });
+    if (resp.ok) {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--ok)">✅ Connexion réussie – Modèle : ' + getApiModel() + '</span>';
+    } else {
+      const err = await resp.json().catch(()=>({}));
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Erreur ' + resp.status + ' : ' + (err.error?.message||'Vérifiez la clé') + '</span>';
+    }
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--err)">❌ Erreur réseau : ' + e.message + '</span>';
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // SHAREPOINT IFRAME BRIDGE & SESSION PERSISTENCE
