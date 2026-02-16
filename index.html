@@ -52,7 +52,7 @@ a{color:var(--pri);text-decoration:none}
 .login-footer{text-align:center;margin-top:24px;font-size:11px;color:var(--txt-d)}
 
 /* ─── LAYOUT ─── */
-#app{display:none;height:100vh}
+#app{display:block;height:100vh}
 .app-layout{display:flex;height:100%}
 
 /* Sidebar */
@@ -242,31 +242,6 @@ body{overflow:hidden}
 <!-- ═══ SKIP NAVIGATION ═══ -->
 <a href="#main-content" class="skip-nav">Aller au contenu principal</a>
 
-<!-- ═══ LOGIN SCREEN ═══ -->
-<div id="login-screen" role="dialog" aria-label="Connexion à OA Expert" aria-modal="true">
-  <div class="login-box fade-in">
-    <div class="login-logo" aria-hidden="true">
-      <div class="login-logo-icon">OA</div>
-      <div>
-        <div class="login-logo-text">OA Expert</div>
-        <div class="login-logo-sub">IA • Ouvrages d'Art</div>
-      </div>
-    </div>
-    <h1 class="sr-only">Connexion à OA Expert — Plateforme IA Ouvrages d'Art</h1>
-    <div id="login-error" class="login-error" role="alert" aria-live="assertive"></div>
-    <div class="login-field">
-      <label for="login-user">Identifiant</label>
-      <input type="text" id="login-user" placeholder="Votre identifiant" autocomplete="username" required aria-required="true">
-    </div>
-    <div class="login-field">
-      <label for="login-pass">Mot de passe</label>
-      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required aria-required="true">
-    </div>
-    <button class="login-btn" onclick="doLogin()" aria-label="Se connecter">Se connecter</button>
-    <div class="login-footer" aria-hidden="true">Plateforme sécurisée • Accès réservé aux utilisateurs autorisés</div>
-  </div>
-</div>
-
 <!-- ═══ APP ═══ -->
 <div id="app">
 <div class="app-layout">
@@ -294,9 +269,9 @@ body{overflow:hidden}
       <div class="header-right">
         <span id="user-role-display"></span>
         <span style="font-size:11px;color:var(--ok);font-weight:600;display:flex;align-items:center;gap:4px" aria-label="Statut : connecté">
-          <span class="status-dot" style="background:var(--ok)" aria-hidden="true"></span> Connecté
+          <span class="status-dot" style="background:var(--ok)" aria-hidden="true"></span> Accès libre
         </span>
-        <button class="btn btn-ghost btn-sm" onclick="doLogout()" aria-label="Se déconnecter">Déconnexion</button>
+        <span class="fs11 c-m" style="padding:6px 10px;border:1px solid var(--brd);border-radius:8px">Mode public</span>
       </div>
     </header>
     <div class="main-content" id="main-content" role="region" aria-label="Contenu principal" aria-live="polite"></div>
@@ -308,15 +283,10 @@ body{overflow:hidden}
 // ═══════════════════════════════════════════════════════════════════
 // DATA STORE
 // ═══════════════════════════════════════════════════════════════════
-const USERS_DEFAULT = [
-  { id: "admin", username: "damien.lhote", password: "OAExpert2026!", displayName: "Damien LHOTE", initials: "DL", role: "admin", color: "#3B82F6", poste: "Chef de projet OA" },
-  { id: "u2", username: "l.aurier", password: "Inspect2026!", displayName: "Louis AURIER", initials: "LA", role: "user", color: "#10B981", poste: "Inspecteur OA" },
-  { id: "u3", username: "h.ouabdelmoumen", password: "Inspect2026!", displayName: "Hamza OUABDEL MOUMEN", initials: "HO", role: "user", color: "#8B5CF6", poste: "Inspecteur OA" },
-  { id: "u4", username: "d.segmane", password: "Inspect2026!", displayName: "Dalila SEGMANE", initials: "DS", role: "user", color: "#EC4899", poste: "Inspecteur OA" },
-];
-
-let USERS = JSON.parse(JSON.stringify(USERS_DEFAULT));
-let currentUser = null;
+// Mode public : pas d'utilisateurs ni d'authentification
+const USERS_DEFAULT = [];
+let USERS = [];
+let currentUser = { displayName: 'Visiteur', initials: 'VI', role: 'public', color: '#64748B', poste: 'Accès libre' };
 let activeModule = "dashboard";
 let clientFilter = "all";
 let selectedOuvrage = null;
@@ -409,7 +379,6 @@ const MODULES = [
   {id:"sharepoint",label:"SharePoint",icon:"☁️",sub:"Synchronisation et publication automatique"},
   {id:"collab",label:"Collaboration",icon:"👥",sub:"Travail collaboratif en temps réel"},
   {id:"sep2",sep:true},
-  {id:"admin",label:"Administration",icon:"⚙️",sub:"Gestion des utilisateurs et des accès",adminOnly:true},
 ];
 
 let chatMessages = [
@@ -421,17 +390,13 @@ let chatLoading = false;
 // AUTH
 // ═══════════════════════════════════════════════════════════════════
 function doLogin() {
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value;
-  const errEl = document.getElementById('login-error');
-  const found = USERS.find(x => x.username === u && x.password === p);
+  const u = const p = const errEl = const found = USERS.find(x => x.username === u && x.password === p);
   if (!found) {
     errEl.textContent = "Identifiant ou mot de passe incorrect";
     errEl.style.display = "block";
     return;
   }
   currentUser = found;
-  document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   buildSidebar();
   navigate('dashboard');
@@ -444,14 +409,10 @@ function doLogout() {
   try { sessionStorage.removeItem('oa-session'); } catch(e) {}
   notifyParent('logout', {});
   document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-  document.getElementById('login-error').style.display = 'none';
-}
+  }
 
-document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-document.getElementById('login-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+});
+});
 
 // ═══════════════════════════════════════════════════════════════════
 // NAVIGATION
@@ -471,15 +432,13 @@ function buildSidebar() {
     </div>`;
   });
   const usr = document.getElementById('sidebar-user');
-  if (currentUser) {
-    usr.innerHTML = `<div class="user-avatar" style="background:${currentUser.color}">${currentUser.initials}</div>
-      <div class="user-info"><div style="font-size:13px;font-weight:600">${currentUser.displayName}</div>
-      <div style="font-size:10px;color:var(--txt-m)">${currentUser.poste}</div></div>`;
-  }
-  const roleDisp = document.getElementById('user-role-display');
-  if (currentUser?.role === 'admin') roleDisp.innerHTML = '<span class="role-badge role-admin">Admin</span>';
-  else if (currentUser?.role === 'user') roleDisp.innerHTML = '<span class="role-badge role-user">Utilisateur</span>';
-  else roleDisp.innerHTML = '<span class="role-badge role-reader">Lecteur</span>';
+ if (usr) {
+   usr.innerHTML = `<div class="user-avatar" style="background:${currentUser.color}">${currentUser.initials}</div>
+     <div class="user-info"><div style="font-size:13px;font-weight:600">${currentUser.displayName}</div>
+     <div style="font-size:10px;color:var(--txt-m)">${currentUser.poste}</div></div>`;
+ }
+ const roleDisp = document.getElementById('user-role-display');
+ if (roleDisp) roleDisp.innerHTML = '<span class="role-badge role-reader">Public</span>';
 }
 
 function navigate(mod) {
@@ -506,9 +465,8 @@ function clientLabel(id) {
   return CLIENTS.find(c=>c.id===id)?.label||'';
 }
 
-function canEdit() { return currentUser && (currentUser.role === 'admin' || currentUser.role === 'user'); }
-function isAdmin() { return currentUser?.role === 'admin'; }
-
+function canEdit() { return false; }
+function isAdmin() { return false; }
 // ═══════════════════════════════════════════════════════════════════
 // MODULE RENDERERS
 // ═══════════════════════════════════════════════════════════════════
@@ -1131,7 +1089,7 @@ function renderAdmin() {
     <div>
       <label class="fs11 c-m fw600" style="display:block;margin-bottom:4px">Statut</label>
       <div style="padding:10px 12px;border:1px solid var(--brd);border-radius:10px;background:var(--bg)">
-        <div class="fs12" id="copilot-admin-status">${(window.parent!==window && copilotConnected)?'✅ Connecté (hôte)':'⏳ En attente (GitHub : configurez un endpoint)'} </div>
+        <div class="fs12" id="copilot-admin-status">${(window.parent!==window && copilotConnected)?'✅ Accès libre (hôte)':'⏳ En attente (GitHub : configurez un endpoint)'} </div>
         <div class="fs11 c-d" style="margin-top:4px">Mode : ${(window.parent!==window)?'postMessage (hôte)':'endpoint (GitHub)'} </div>
       </div>
     </div>
@@ -1307,16 +1265,9 @@ function notifyParent(event, data) {
   try { if (window.parent !== window) window.parent.postMessage({source:'oa-expert', event, data}, '*'); } catch(e) {}
 }
 // Session persistence (survives page refresh within iframe)
-function saveSession() {
-  if (!currentUser) return;
-  try { sessionStorage.setItem('oa-session', JSON.stringify({username:currentUser.username,module:activeModule})); } catch(e) {}
+function saveSession() { /* mode public */ }
 }
-function restoreSession() {
-  try {
-    const s = JSON.parse(sessionStorage.getItem('oa-session'));
-    if (s?.username) {
-      const u = USERS.find(x=>x.username===s.username);
-      if (u) { currentUser=u; document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='block'; buildSidebar(); navigate(s.module||'dashboard'); return true; }
+function restoreSession() { return true; }
     }
   } catch(e) {}
   return false;
@@ -1325,10 +1276,9 @@ function restoreSession() {
 // ═══════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════
-if (!restoreSession()) {
-  document.getElementById('login-user').focus();
-}
-notifyParent('ready', {version:'2.0'});
+buildSidebar();
+navigate('dashboard');
+notifyParent('ready', {version:'github-public'});
 
 // ======================= M365 COPILOT (GitHub compatible) — START =======================
 let copilotConnected = false;
