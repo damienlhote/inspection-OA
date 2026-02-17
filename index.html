@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="frame-ancestors *;">
-<title>OA Expert — Plateforme IA Ouvrages d'Art</title>
+<title>OA Expert v4 — Plateforme IA Ouvrages d'Art</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233B82F6'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-weight='900' font-family='sans-serif'>OA</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -38,7 +38,8 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:var(--card-h)}
 .fw600{font-weight:600}.fw700{font-weight:700}.fs12{font-size:12px}.fs11{font-size:11px}.fs13{font-size:13px}
 .c-m{color:var(--txt-m)}.c-d{color:var(--txt-d)}.c-pri{color:var(--pri)}.c-acc{color:var(--acc)}.c-err{color:var(--err)}.c-ok{color:var(--ok)}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;transition:all .2s;min-height:36px}
-.btn-pri{background:var(--pri);color:#fff}.btn-pri:hover{background:var(--pri-d)}.btn-ghost{background:transparent;color:var(--txt-m);border:1px solid var(--brd)}.btn-ghost:hover{border-color:var(--brd-l);color:var(--txt)}.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
+.btn-pri{background:var(--pri);color:#fff}.btn-pri:hover{background:var(--pri-d)}.btn-acc{background:var(--acc);color:#fff}.btn-err{background:var(--err);color:#fff}
+.btn-ghost{background:transparent;color:var(--txt-m);border:1px solid var(--brd)}.btn-ghost:hover{border-color:var(--brd-l);color:var(--txt)}.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
 .pill{display:inline-flex;align-items:center;padding:5px 14px;border-radius:20px;border:1px solid var(--brd);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--txt-m);min-height:36px}
 .pill:hover{border-color:var(--brd-l);color:var(--txt)}.pill.active{border-color:var(--pri);background:var(--pri-g);color:var(--pri)}
 .badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:700;font-family:var(--mono)}
@@ -46,18 +47,23 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:var(--card-h)}
 .input{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:9px 14px;color:var(--txt);font-size:13px;font-family:var(--ff);outline:none;width:100%;transition:border .2s}
 .tag{font-size:11px;padding:3px 10px;border-radius:6px;font-weight:600;display:inline-block}.tag-pri{background:var(--pri-g);color:var(--pri)}.tag-acc{background:var(--acc-g);color:var(--acc)}.tag-ok{background:var(--ok-g);color:var(--ok)}.tag-err{background:var(--err-g);color:var(--err)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;display:flex;align-items:center;justify-content:center}
-.modal{background:var(--sidebar);border:1px solid var(--brd);border-radius:16px;padding:28px;width:95%;max-width:680px;max-height:85vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,0.5)}
+.modal{background:var(--sidebar);border:1px solid var(--brd);border-radius:16px;padding:28px;width:95%;max-width:720px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,0.5)}
 .modal-title{font-size:18px;font-weight:800;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}.modal-close{background:none;border:none;color:var(--txt-m);font-size:22px;cursor:pointer}
 .field{margin-bottom:14px}.field label{display:block;font-size:12px;color:var(--txt-m);font-weight:600;margin-bottom:5px}
-.prompt-box{background:#070b14;border:1px solid var(--brd);border-radius:10px;padding:16px;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--txt-m);white-space:pre-wrap;max-height:400px;overflow:auto}
+.prompt-box{background:#070b14;border:1px solid var(--brd);border-radius:10px;padding:16px;font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--txt-m);white-space:pre-wrap;max-height:350px;overflow:auto;position:relative}
 .file-attach{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg);border:2px dashed var(--brd);border-radius:8px;cursor:pointer;font-size:12px;color:var(--txt-m);transition:border-color .2s}.file-attach:hover{border-color:var(--pri)}
 .file-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:6px;font-size:12px;margin-top:4px}
+.ai-box{background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(245,158,11,0.06));border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:16px;margin-top:16px}
+.ai-box-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--pri)}
+.ai-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}.ai-step-num{width:24px;height:24px;border-radius:12px;background:var(--pri);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}.ai-step-text{font-size:12px;color:var(--txt-m);flex:1}
+.ai-response-area{width:100%;min-height:80px;background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:10px;color:var(--txt);font-size:12px;font-family:var(--mono)}
+.ai-link{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--brd);color:var(--txt);text-decoration:none;transition:all .2s}.ai-link:hover{border-color:var(--pri);background:var(--pri-g)}
 .gantt-header{display:flex;border-bottom:1px solid var(--brd);height:32px}.gantt-month{flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt-m);font-weight:700;border-right:1px solid var(--brd)}
 .gantt-row{height:36px;border-bottom:1px solid var(--brd);position:relative}.gantt-bar{position:absolute;height:22px;top:7px;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap;opacity:.85}
 .gantt-task{height:36px;border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:500;border-right:1px solid var(--brd);min-width:220px}
-.ai-link{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--brd);color:var(--txt);text-decoration:none;transition:all .2s}.ai-link:hover{border-color:var(--pri);background:var(--pri-g)}
-.dcat{padding:10px;background:var(--bg);border:1px solid var(--brd);border-radius:8px;margin-bottom:8px}.dcat-t{font-size:13px;font-weight:700;margin-bottom:6px}.di{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin-bottom:2px;transition:background .15s}.di:hover{background:var(--card-h)}.di.sel{background:var(--pri-g);outline:1px solid rgba(59,130,246,0.3)}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.dcat{padding:10px;background:var(--bg);border:1px solid var(--brd);border-radius:8px;margin-bottom:8px}.dcat-t{font-size:13px;font-weight:700;margin-bottom:6px}
+.di{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin-bottom:2px;transition:background .15s}.di:hover{background:var(--card-h)}.di.sel{background:var(--pri-g);outline:1px solid rgba(59,130,246,0.3)}
+.evo-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--brd);font-size:12px}
 *:focus-visible{outline:2px solid var(--pri);outline-offset:2px;border-radius:4px}*:focus:not(:focus-visible){outline:none}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.fade-in{animation:fadeIn .3s ease-out}
 @media(max-width:900px){.sidebar{width:66px;min-width:66px}.sidebar .sidebar-logo-text,.sidebar .nav-item span:not(.nav-icon){display:none}.grid-4{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
@@ -65,25 +71,34 @@ tr.clickable{cursor:pointer}tr.clickable:hover{background:var(--card-h)}
 </head>
 <body>
 <div id="app"><div class="app-layout">
-  <nav class="sidebar" id="sb"><div class="sidebar-logo" onclick="document.getElementById('sb').classList.toggle('collapsed')"><div class="sidebar-logo-icon">OA</div><div class="sidebar-logo-text"><div style="font-size:16px;font-weight:800;letter-spacing:-.5px">OA Expert</div><div style="font-size:10px;color:var(--txt-m);font-weight:600;letter-spacing:1.5px;text-transform:uppercase">IA • Ouvrages d'Art</div></div></div><div class="sidebar-nav" id="sn"></div><div style="padding:14px 18px;border-top:1px solid var(--brd);font-size:10px;color:var(--txt-d);text-align:center">v3.0</div></nav>
+  <nav class="sidebar" id="sb"><div class="sidebar-logo" onclick="document.getElementById('sb').classList.toggle('collapsed')"><div class="sidebar-logo-icon">OA</div><div class="sidebar-logo-text"><div style="font-size:16px;font-weight:800;letter-spacing:-.5px">OA Expert</div><div style="font-size:10px;color:var(--txt-m);font-weight:600;letter-spacing:1.5px;text-transform:uppercase">IA • Ouvrages d'Art</div></div></div><div class="sidebar-nav" id="sn"></div><div style="padding:14px 18px;border-top:1px solid var(--brd);font-size:10px;color:var(--txt-d);text-align:center">v4.0 — IA Interactive</div></nav>
   <main class="main-area"><header class="main-header"><div><h1 id="pt">Tableau de bord</h1><div class="sub" id="ps"></div></div><div style="font-size:11px;color:var(--ok);font-weight:600;display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:4px;background:var(--ok);display:inline-block"></span> En ligne</div></header><div class="main-content" id="mc"></div></main>
 </div></div>
 <div id="mr"></div>
 <script>
-let M='dashboard',selOuv=null,normsSearch='',normsOrg='all',planView='gantt',promptTopic='general',nid=100;
+// ═══════════════════ GLOBAL STATE ═══════════════════
+let M='dashboard',selOuv=null,selDes=null,normsSearch='',normsOrg='all',planView='gantt',promptTopic='general',docType='pvid',nid=100;
 function uid(){return++nid}
 const CL=[{id:'ferroviaire',l:'Ferroviaire',i:'🚆'},{id:'routier',l:'Routier',i:'🛣️'},{id:'fluvial',l:'Fluvial',i:'⚓'},{id:'autre',l:'Autre',i:'🏗️'}];
 let OUV=[],INS=[],DES=[],TASKS=[];
-const MODS=[{id:'dashboard',l:'Tableau de bord',i:'📊',s:'Vue d\'ensemble'},{id:'ouvrages',l:'Ouvrages',i:'🌉',s:'Patrimoine'},{id:'inspections',l:'Inspections',i:'🔍',s:'Campagnes'},{id:'desordres',l:'Désordres',i:'⚠️',s:'Registre des avaries'},{id:'normes',l:'Base normative',i:'📚',s:'Références techniques'},{id:'documents',l:'Documents',i:'📄',s:'Générateur PV'},{id:'planning',l:'Planning',i:'📅',s:'Planification'},{id:'ai',l:'Assistant IA',i:'🤖',s:'Prompts universels'}];
 
+const MODS=[
+  {id:'dashboard',l:'Tableau de bord',i:'📊',s:'Vue d\'ensemble'},
+  {id:'ouvrages',l:'Ouvrages',i:'🌉',s:'Patrimoine'},
+  {id:'inspections',l:'Inspections',i:'🔍',s:'Campagnes'},
+  {id:'desordres',l:'Désordres',i:'⚠️',s:'Registre et évolution des avaries'},
+  {id:'normes',l:'Base normative',i:'📚',s:'Références techniques'},
+  {id:'documents',l:'Documents',i:'📄',s:'PV, Expertises, Mémoires'},
+  {id:'planning',l:'Planning',i:'📅',s:'Planification'},
+  {id:'ai',l:'Assistant IA',i:'🤖',s:'Prompts universels'},
+];
+
+// ═══════════════════ NORMS DATABASE ═══════════════════
 const NDB=[
   {o:"ITSEOA",r:"Fascicule 0",t:"Dispositions générales",d:"Surveillance",u:"https://www.ecologie.gouv.fr/politiques-publiques/instruction-technique-surveillance-entretien-ouvrages-dart-itseoa"},
   {o:"ITSEOA",r:"Fascicule 2",t:"Ouvrages en maçonnerie",d:"Inspection",u:"https://www.ecologie.gouv.fr/politiques-publiques/instruction-technique-surveillance-entretien-ouvrages-dart-itseoa"},
   {o:"ITSEOA",r:"Fascicule 3",t:"Béton – Fondations",d:"Inspection",u:"https://www.ecologie.gouv.fr/politiques-publiques/instruction-technique-surveillance-entretien-ouvrages-dart-itseoa"},
-  {o:"ITSEOA",r:"Fascicule 10",t:"Poutrelles enrobées",d:"Inspection",u:""},
   {o:"ITSEOA",r:"Fascicule 11",t:"Ponts métalliques",d:"Inspection",u:""},
-  {o:"ITSEOA",r:"Fascicule 12",t:"Haubans et suspendus",d:"Inspection",u:""},
-  {o:"ITSEOA",r:"Fascicule 13",t:"Ponts en bois",d:"Inspection",u:""},
   {o:"ITSEOA",r:"Fascicule 21",t:"Appareils d'appui",d:"Inspection",u:""},
   {o:"ITSEOA",r:"Fascicule 32",t:"Murs de soutènement",d:"Inspection",u:""},
   {o:"ITSEOA",r:"Fascicule 40",t:"Tunnels",d:"Inspection",u:""},
@@ -92,123 +107,77 @@ const NDB=[
   {o:"CEREMA",r:"Guide anticorrosion",t:"Protection ouvrages métalliques",d:"Protection",u:"https://www.cerema.fr/fr/centre-ressources/boutique/protection-ouvrages-metalliques-contre-corrosion"},
   {o:"CEREMA",r:"Guide fatigue",t:"Résistance fatigue ponts métalliques",d:"Calcul",u:"https://www.cerema.fr/fr/centre-ressources/boutique/resistance-fatigue"},
   {o:"CEREMA",r:"Guide surveillance",t:"Surveillance et entretien courant OA",d:"Surveillance",u:"https://www.cerema.fr/fr/centre-ressources/boutique/surveillance-entretien-courant-ouvrages-art-routiers"},
-  {o:"SETRA",r:"Guide AAE",t:"Appareils d'appui élastomère",d:"Appareils d'appui",u:""},
-  {o:"SETRA",r:"Guide PE",t:"Précontrainte extérieure",d:"Réparation",u:""},
-  {o:"LCPC",r:"Guide béton projeté",t:"Bétons projetés – Mise en œuvre",d:"Réparation",u:""},
-  {o:"LCPC",r:"Guide diagnostic",t:"Diagnostic ouvrages en béton",d:"Diagnostic",u:""},
-  {o:"CETU",r:"Guide tunnels",t:"Dossier pilote tunnels",d:"Tunnels",u:"https://www.cetu.developpement-durable.gouv.fr/"},
   {o:"SNCF",r:"IN 1256",t:"Surveillance et entretien OA",d:"Surveillance",u:""},
   {o:"SNCF",r:"IN 1260",t:"Cotation des désordres",d:"Cotation",u:""},
   {o:"SNCF",r:"IN 1130",t:"Sécurité travaux ferroviaires",d:"Sécurité",u:""},
   {o:"SNCF",r:"IN 7012/00035",t:"Réparations Ponts Métalliques",d:"Réparation",u:""},
   {o:"SNCF",r:"IN 00036",t:"Protection anticorrosion",d:"Protection",u:""},
-  {o:"SNCF",r:"MT 1253",t:"Surveillance OA",d:"Surveillance",u:""},
-  {o:"IMGC",r:"Guide IMGC",t:"Gestion patrimoine",d:"Gestion",u:"https://www.legifrance.gouv.fr/"},
   {o:"STRRES",r:"RECO N°4",t:"Réparation et renforcement",d:"Réparation",u:"https://www.strres.org/"},
   {o:"NF EN",r:"EN 1090-2",t:"Exécution structures acier",d:"Exécution",u:"https://www.boutique.afnor.org/"},
-  {o:"NF EN",r:"EN 1504",t:"Protection/réparation béton",d:"Réparation",u:"https://www.boutique.afnor.org/"},
-  {o:"NF EN",r:"EN 1991 (EC1)",t:"Actions sur structures",d:"Calcul",u:"https://www.boutique.afnor.org/"},
-  {o:"NF EN",r:"EN 1992 (EC2)",t:"Calcul structures béton",d:"Calcul",u:"https://www.boutique.afnor.org/"},
   {o:"NF EN",r:"EN 1993 (EC3)",t:"Calcul structures acier",d:"Calcul",u:"https://www.boutique.afnor.org/"},
   {o:"NF EN",r:"ISO 12944",t:"Anticorrosion peinture",d:"Protection",u:"https://www.boutique.afnor.org/"},
-  {o:"NF EN",r:"ISO 8501-1",t:"Préparation subjectiles",d:"Protection",u:"https://www.boutique.afnor.org/"},
   {o:"CCTG",r:"Fascicule 56",t:"Protection ouvrages métalliques",d:"Protection",u:"https://www.legifrance.gouv.fr/"},
   {o:"CCTG",r:"Fascicule 65",t:"Exécution ouvrages béton",d:"Exécution",u:"https://www.legifrance.gouv.fr/"},
   {o:"CCTG",r:"Fascicule 66",t:"Exécution ponts métalliques",d:"Exécution",u:"https://www.legifrance.gouv.fr/"},
 ];
 
-const DCAT={"Pont métallique":[{c:"Structure métallique",i:["Fissure de fatigue","Fissure de fragilité","Corrosion généralisée","Corrosion localisée","Flambement local","Flambement général","Voilement de tôle","Déformation permanente","Perte de section"]},{c:"Assemblages",i:["Jeu excessif rivets","Rivet manquant","Rivet cisaillé","Corrosion rivets","Fissure soudure","Rupture boulon HR","Desserrage boulon","Gousset fissuré"]},{c:"Peinture",i:["Écaillage peinture","Cloquage","Farinage","Rouille sous peinture","Absence protection"]},{c:"Appareils d'appui",i:["Distorsion élastomère","Hernie","Glissement hors appui","Blocage mobile","Corrosion AA"]}],"Pont béton armé":[{c:"Béton",i:["Fissure longitudinale","Fissure transversale","Fissure en étoile","Épaufrure","Écaillage","Nid de cailloux","Carbonatation","Alcali-réaction","Gel/dégel"]},{c:"Armatures",i:["Corrosion armatures","Armatures apparentes","Perte de section armatures","Éclatement enrobage"]},{c:"Étanchéité",i:["Défaut étanchéité","Infiltration","Stalactite","Colmatage gargouille"]},{c:"Appareils d'appui",i:["Distorsion élastomère","Hernie","Glissement","Écrasement","Fissure bossage"]}],"Pont maçonnerie":[{c:"Maçonnerie",i:["Fissure voûte longitudinale","Fissure voûte transversale","Dislocation joints","Éclatement pierre","Érosion mortier","Déversement tympan","Infiltration clé de voûte"]},{c:"Fondations",i:["Affouillement","Érosion radier","Basculement pile","Tassement différentiel"]},{c:"Divers",i:["Végétation invasive","Mousse/lichens","Efflorescence"]}],"Tunnel":[{c:"Voûte/piédroits",i:["Fissure voûte","Épaufrure voûte","Infiltration ponctuelle","Infiltration généralisée","Stalactite","Dégradation revêtement","Déformation profil","Vide derrière revêtement"]},{c:"Radier",i:["Soulèvement","Fissure radier","Érosion","Colmatage caniveau"]},{c:"Équipements",i:["Éclairage HS","Ventilation HS","Signalisation manquante"]}],"Mur de soutènement":[{c:"Structure",i:["Basculement","Glissement","Fissure verticale","Fissure horizontale","Bombement","Érosion pied"]},{c:"Drainage",i:["Colmatage barbacanes","Pression hydrostatique","Absence drainage"]},{c:"Couronnement",i:["Fissure couronnement","Déplacement garde-corps","Corrosion garde-corps"]}],"Passerelle":[{c:"Structure",i:["Fissure fatigue","Corrosion","Flambement","Déformation excessive","Vibration excessive"]},{c:"Équipements",i:["Déformation garde-corps","Corrosion garde-corps","Platelage dégradé","Antidérapant usé"]}],"Viaduc mixte":[{c:"Acier",i:["Fissure fatigue","Corrosion","Flambement","Voilement"]},{c:"Dalle béton",i:["Fissure","Épaufrure","Écaillage","Corrosion armatures","Défaut étanchéité"]},{c:"Connexion",i:["Cisaillement connecteurs","Fissure interface","Décollement"]},{c:"AA",i:["Distorsion","Glissement","Corrosion","Blocage"]}]};
+// ═══════════════════ DISORDER CATALOG ═══════════════════
+const DCAT={"Pont métallique":[{c:"Structure",i:["Fissure de fatigue","Fissure de fragilité","Corrosion généralisée","Corrosion localisée","Flambement local","Voilement de tôle","Déformation permanente","Perte de section"]},{c:"Assemblages",i:["Jeu excessif rivets","Rivet manquant","Rivet cisaillé","Corrosion rivets","Fissure soudure","Rupture boulon HR","Desserrage boulon"]},{c:"Peinture/Protection",i:["Écaillage peinture","Cloquage","Farinage","Rouille sous peinture","Absence protection"]},{c:"Appareils d'appui",i:["Distorsion élastomère","Hernie","Glissement hors appui","Blocage mobile","Corrosion AA"]}],"Pont béton armé":[{c:"Béton",i:["Fissure longitudinale","Fissure transversale","Fissure en étoile","Épaufrure","Écaillage","Nid de cailloux","Carbonatation","Alcali-réaction","Gel/dégel"]},{c:"Armatures",i:["Corrosion armatures","Armatures apparentes","Éclatement enrobage","Perte de section armatures"]},{c:"Étanchéité",i:["Défaut étanchéité","Infiltration","Stalactite/efflorescence","Colmatage gargouille"]},{c:"AA",i:["Distorsion","Hernie","Glissement","Fissure bossage"]}],"Pont maçonnerie":[{c:"Maçonnerie",i:["Fissure voûte longitudinale","Fissure voûte transversale","Dislocation joints","Éclatement pierre","Érosion mortier","Déversement tympan"]},{c:"Fondations",i:["Affouillement","Érosion radier","Basculement pile","Tassement différentiel"]},{c:"Divers",i:["Végétation invasive","Efflorescence","Traces humidité"]}],"Tunnel":[{c:"Voûte",i:["Fissure voûte","Épaufrure","Infiltration ponctuelle","Infiltration généralisée","Stalactite","Déformation profil","Vide derrière revêtement"]},{c:"Radier",i:["Soulèvement","Fissure radier","Colmatage caniveau"]}],"Mur de soutènement":[{c:"Structure",i:["Basculement","Glissement","Fissure verticale","Fissure horizontale","Bombement","Érosion pied"]},{c:"Drainage",i:["Colmatage barbacanes","Pression hydrostatique","Absence drainage"]}],"Passerelle":[{c:"Structure",i:["Fissure fatigue","Corrosion","Flambement","Déformation","Vibration excessive"]},{c:"Équipements",i:["Déformation garde-corps","Corrosion garde-corps","Platelage dégradé"]}],"Viaduc mixte":[{c:"Acier",i:["Fissure fatigue","Corrosion","Flambement","Voilement"]},{c:"Dalle béton",i:["Fissure","Épaufrure","Écaillage","Défaut étanchéité"]},{c:"Connexion",i:["Cisaillement connecteurs","Fissure interface"]},{c:"AA",i:["Distorsion","Glissement","Corrosion"]}]};
 
-const AIP=`Tu es OA Expert IA, assistant spécialisé en inspection, maintenance et réparation d'ouvrages d'art. EXPERTISE: PVID, IDP, VST, IQOA, IN 1260, pathologies, réparations, anticorrosion ISO 12944, Eurocodes. NORMES: ITSEOA, CEREMA, SNCF (IN 1256/1260/1130/7012/00035/00036), SETRA, LCPC, CETU, IMGC, STRRES, Eurocodes, CCTG. Réponds en français technique. Cite les normes.`;
+// ═══════════════════ AI SYSTEM PROMPT ═══════════════════
+const AIP=`Tu es OA Expert IA, assistant spécialisé de haut niveau en inspection, maintenance et réparation d'ouvrages d'art (ponts, viaducs, passerelles, tunnels, murs de soutènement).
+EXPERTISE: PVID/IDP/VST, cotation IQOA et IN 1260, pathologies structures, réparations, anticorrosion ISO 12944, Eurocodes.
+NORMES: ITSEOA, CEREMA, SNCF (IN 1256/1260/1130/7012/00035/00036), SETRA, LCPC, CETU, IMGC, STRRES RECO N°4, EN 1090-2/1504/1991-1993, ISO 12944, CCTG Fasc. 56/65/66.
+Réponds TOUJOURS en français technique. Cite les normes applicables.`;
 
-function nav(m){M=m;selOuv=null;const mod=MODS.find(x=>x.id===m);document.getElementById('pt').textContent=mod?.l||'';document.getElementById('ps').textContent=mod?.s||'';bSB();R();}
+// ═══════════════════ HELPERS ═══════════════════
+function nav(m){M=m;selOuv=null;selDes=null;const mod=MODS.find(x=>x.id===m);document.getElementById('pt').textContent=mod?.l||'';document.getElementById('ps').textContent=mod?.s||'';bSB();R();}
 function bSB(){const n=document.getElementById('sn');n.innerHTML='';MODS.forEach(m=>{n.innerHTML+=`<div class="nav-item ${M===m.id?'active':''}" onclick="nav('${m.id}')" title="${m.l}"><span class="nav-icon">${m.i}</span><span>${m.l}</span></div>`;});}
-function iqB(c){const x={'1':'badge-1','2':'badge-2','2E':'badge-2e','3':'badge-3','3U':'badge-3u'}[c]||'';return x?`<span class="badge ${x}">${c}</span>`:`<span class="tag tag-acc">${c}</span>`;}
+function iqB(c){const x={'1':'badge-1','2':'badge-2','2E':'badge-2e','3':'badge-3','3U':'badge-3u'}[c];return x?`<span class="badge ${x}">${c}</span>`:`<span class="tag tag-acc">${c||'NE'}</span>`;}
 function cI(id){return CL.find(c=>c.id===id)?.i||'🏗️';}
 function cL(id){return CL.find(c=>c.id===id)?.l||'';}
 function clM(){document.getElementById('mr').innerHTML='';}
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function cpT(id){const t=document.getElementById(id)?.innerText;if(!t)return;navigator.clipboard.writeText(t).then(()=>{const s=document.getElementById(id+'s');if(s)s.textContent='✅ Copié !';});}
+function cpT(id){const t=document.getElementById(id)?.innerText;if(!t)return;navigator.clipboard.writeText(t).then(()=>{const s=document.getElementById(id+'s');if(s){s.textContent='✅ Copié ! Collez dans votre IA.';setTimeout(()=>{s.textContent='';},4000);}});}
 function shF(iid,lid){const fs=document.getElementById(iid).files,l=document.getElementById(lid);l.innerHTML='';for(const f of fs)l.innerHTML+=`<div class="file-item">📄 ${f.name} <span class="c-d fs11">(${(f.size/1024).toFixed(0)}Ko)</span></div>`;}
-
-function R(){
-  const el=document.getElementById('mc');
-  ({dashboard:rD,ouvrages:rO,inspections:rI,desordres:rDe,normes:rN,documents:rDoc,planning:rP,ai:rAI}[M]||rD).call();
-  function rD(){el.innerHTML=`<div class="fade-in"><div class="grid-4" style="margin-bottom:24px">${[{l:'Ouvrages',v:OUV.length,c:'var(--pri)'},{l:'Désordres',v:DES.length,c:'var(--err)'},{l:'Inspections',v:INS.length,c:'var(--acc)'},{l:'Tâches',v:TASKS.length,c:'var(--ok)'}].map(s=>`<div class="card" style="border-top:3px solid ${s.c}"><div class="stat-num" style="color:${s.c}">${s.v}</div><div class="stat-label">${s.l}</div></div>`).join('')}</div>
-    ${OUV.length===0?`<div class="card" style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:16px">🌉</div><div class="fw700" style="font-size:18px;margin-bottom:8px">Bienvenue sur OA Expert</div><div class="c-m" style="margin-bottom:20px">Commencez par créer votre premier ouvrage</div><button class="btn btn-pri" onclick="nav('ouvrages');mNO()">+ Créer un ouvrage</button></div>`
-    :`<div class="card"><div class="card-title">🌉 Ouvrages</div><table><thead><tr><th>Nom</th><th>Type</th><th>Client</th><th>IQOA</th></tr></thead><tbody>${OUV.slice(-5).reverse().map(o=>`<tr class="clickable" onclick="selOuv=${o.id};nav('ouvrages')"><td class="fw600">${o.nom}</td><td class="c-m fs12">${o.type}</td><td>${cI(o.client)}</td><td>${iqB(o.iqoa)}</td></tr>`).join('')}</tbody></table></div>`}</div>`;}
-
-  function rO(){
-    if(selOuv){const o=OUV.find(x=>x.id===selOuv);if(!o){selOuv=null;return rO();}const ds=DES.filter(d=>d.oid===o.id);
-      el.innerHTML=`<div class="fade-in"><div style="cursor:pointer;color:var(--txt-m);font-size:13px;margin-bottom:20px" onclick="selOuv=null;R()">← Retour</div>
-        <div class="card"><div style="display:flex;justify-content:space-between"><div><div style="font-size:20px;font-weight:800;margin-bottom:6px">${o.nom}</div><div class="c-m">${o.type} • ${cI(o.client)} ${cL(o.client)}</div></div>${iqB(o.iqoa)}</div>
-          <div class="grid-3" style="margin-top:20px">${[['Matériaux',o.mat||'–'],['Année',o.annee||'–'],['Dimensions',(o.long||'?')+'m × '+(o.larg||'?')+'m'],['Commune',o.commune||'–'],['Voie',o.voie||'–'],['Créé',o.created]].map(([l,v])=>`<div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--brd)"><div class="fs11 c-m fw600" style="text-transform:uppercase">${l}</div><div class="fs13 fw600" style="margin-top:4px">${v}</div></div>`).join('')}</div>
-          ${o.rem?`<div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--brd)"><div class="fs11 c-m fw600">REMARQUES</div><div class="fs13" style="margin-top:4px">${o.rem}</div></div>`:''}
-          ${o.files?.length?`<div style="margin-top:10px"><div class="fs11 c-m fw600">PIÈCES JOINTES</div>${o.files.map(f=>`<div class="file-item">📄 ${f}</div>`).join('')}</div>`:''}
-        </div>
-        <div class="card"><div class="card-title">⚠️ Désordres (${ds.length})</div>${ds.length?`<table><thead><tr><th>Type</th><th>Élément</th><th>Sévérité</th></tr></thead><tbody>${ds.map(d=>`<tr><td class="fw600">${d.type}</td><td class="c-m">${d.elem||'–'}</td><td>${iqB(d.sev)}</td></tr>`).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:20px">Aucun désordre</div>'}</div></div>`;return;}
-    el.innerHTML=`<div class="fade-in"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">🌉 Patrimoine (${OUV.length})</div><button class="btn btn-pri" onclick="mNO()">+ Nouvel ouvrage</button></div>
-      ${OUV.length?`<table><thead><tr><th>Ouvrage</th><th>Type</th><th>Client</th><th>IQOA</th><th>Créé</th></tr></thead><tbody>${OUV.map(o=>`<tr class="clickable" onclick="selOuv=${o.id};R()"><td class="fw600">${o.nom}</td><td class="c-m fs12">${o.type}</td><td>${cI(o.client)} <span class="c-m fs12">${cL(o.client)}</span></td><td>${iqB(o.iqoa)}</td><td class="fs12 c-d">${o.created}</td></tr>`).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:32px">Aucun ouvrage. Cliquez sur "+ Nouvel ouvrage".</div>'}
-    </div></div>`;}
-
-  function rI(){el.innerHTML=`<div class="fade-in"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">🔍 Campagnes (${INS.length})</div><button class="btn btn-pri" onclick="mNI()">+ Nouvelle campagne</button></div>
-    ${INS.length?`<table><thead><tr><th>Réf.</th><th>Ouvrage(s)</th><th>Type</th><th>Date</th><th>Inspecteur</th></tr></thead><tbody>${INS.map(c=>`<tr><td class="fw700 c-acc fs12">INS-${String(c.id).padStart(3,'0')}</td><td class="fw600 fs12">${c.ouvs.map(oid=>OUV.find(o=>o.id===oid)?.nom||'?').join(', ')}</td><td><span class="tag tag-pri">${c.type.split('–')[0].trim()}</span></td><td class="fs12">${c.date}</td><td class="fs12">${c.insp||'–'}</td></tr>`).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:32px">Aucune campagne.</div>'}
-  </div></div>`;}
-
-  function rDe(){el.innerHTML=`<div class="fade-in"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">⚠️ Désordres (${DES.length})</div><button class="btn btn-pri" onclick="mND()">+ Nouveau désordre</button></div>
-    ${DES.length?`<table><thead><tr><th>Ouvrage</th><th>Type</th><th>Élément</th><th>Sévérité</th><th>Date</th></tr></thead><tbody>${DES.map(d=>{const o=OUV.find(x=>x.id===d.oid);return`<tr><td class="fs12">${o?.nom||'?'}</td><td class="fw600">${d.type}</td><td class="c-m fs12">${d.elem||'–'}</td><td>${iqB(d.sev)}</td><td class="fs12 c-d">${d.date}</td></tr>`;}).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:32px">Aucun désordre.</div>'}
-  </div></div>`;}
-
-  function rN(){
-    const orgs=[...new Set(NDB.map(n=>n.o))];
-    const f=NDB.filter(n=>(normsOrg==='all'||n.o===normsOrg)&&(normsSearch===''||(n.t+n.r+n.o+n.d).toLowerCase().includes(normsSearch.toLowerCase())));
-    el.innerHTML=`<div class="fade-in"><div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
-      <input class="input" id="ns" style="max-width:300px" placeholder="🔍 Rechercher..." value="${normsSearch}">
-      <span class="pill ${normsOrg==='all'?'active':''}" onclick="normsOrg='all';R()">Tous</span>
-      ${orgs.map(o=>`<span class="pill ${normsOrg===o?'active':''}" onclick="normsOrg='${o}';R()">${o}</span>`).join('')}
-    </div><div class="card"><div class="card-title">📚 Base (${f.length}/${NDB.length})</div>
-      <table><thead><tr><th>Org.</th><th>Réf.</th><th>Titre</th><th>Domaine</th><th>Lien</th></tr></thead>
-      <tbody>${f.map(n=>`<tr><td class="fw700 fs12 c-acc">${n.o}</td><td class="fw600 fs12" style="font-family:var(--mono)">${n.r}</td><td>${n.t}</td><td><span class="tag tag-pri">${n.d}</span></td><td>${n.u?(n.u.startsWith('http')?`<a href="${n.u}" target="_blank" class="fs12">📄 Consulter</a>`:`<span class="fs11 c-d">${n.u}</span>`):'<span class="fs11 c-d">—</span>'}</td></tr>`).join('')}</tbody></table>
-      <div style="margin-top:14px;padding:12px;background:var(--acc-g);border-radius:8px;border:1px solid rgba(245,158,11,0.2)"><div class="fs12 fw700 c-acc">💡 Documents SNCF Réseau (IN) : internes, non diffusés publiquement.</div></div>
-    </div></div>`;
-    document.getElementById('ns')?.addEventListener('input',e=>{normsSearch=e.target.value;R();});
-  }
-
-  function rDoc(){el.innerHTML=`<div class="fade-in"><div class="card" style="border-top:3px solid var(--pri)">
-    <div class="card-title">📋 Générateur de PV d'inspection</div>
-    <div class="c-m fs13" style="margin-bottom:16px">Remplissez les informations, choisissez le format, puis copiez le prompt dans votre IA.</div>
-    <div class="grid-2"><div class="field"><label>Ouvrage</label><select class="input" id="do">${OUV.length?OUV.map(o=>`<option value="${o.id}">${o.nom}</option>`).join(''):'<option>— Créez un ouvrage —</option>'}</select></div>
-      <div class="field"><label>Format du rapport</label><select class="input" id="df"><option value="routier">🛣️ Routier (ESCOTA/CEREMA/IQOA)</option><option value="sncf">🚆 Ferroviaire (SNCF/IN 1256)</option></select></div></div>
-    <div class="grid-2"><div class="field"><label>Date inspection</label><input type="date" class="input" id="dd" value="${new Date().toISOString().slice(0,10)}"></div>
-      <div class="field"><label>Inspecteur(s)</label><input class="input" id="di" placeholder="Noms"></div></div>
-    <div class="field"><label>Moyens</label><input class="input" id="dm" placeholder="Nacelle, drone, jumelles..."></div>
-    <div class="field"><label>Météo</label><input class="input" id="dw" placeholder="Temps clair, 12°C"></div>
-    <div class="field"><label>Constatations</label><textarea class="input" id="dc" rows="4" placeholder="Décrivez les désordres constatés, localisations, mesures..."></textarea></div>
-    <div class="field"><label>📎 Photos / documents</label><input type="file" id="dff" multiple style="display:none" onchange="shF('dff','dfl')"><div class="file-attach" onclick="document.getElementById('dff').click()">📁 Ajouter fichiers</div><div id="dfl"></div></div>
-    <button class="btn btn-pri" onclick="genPV()" style="margin-top:8px">🤖 Générer avec l'IA</button>
-    <div id="dout" style="margin-top:16px"></div>
-  </div>
-  <div class="card"><div class="card-title">🌐 Collez dans votre IA</div><div style="display:flex;gap:10px;flex-wrap:wrap">
-    <a href="https://copilot.microsoft.com" target="_blank" class="ai-link">🟢 Copilot</a><a href="https://chatgpt.com" target="_blank" class="ai-link">🟣 ChatGPT</a><a href="https://gemini.google.com" target="_blank" class="ai-link">🔵 Gemini</a><a href="https://claude.ai" target="_blank" class="ai-link">🟠 Claude</a><a href="https://chat.mistral.ai" target="_blank" class="ai-link">⚪ Mistral</a></div></div></div>`;}
-
-  function rP(){
-    const total=60;const pills=`<div style="display:flex;gap:8px;margin-bottom:20px"><span class="pill ${planView==='gantt'?'active':''}" onclick="planView='gantt';R()">📊 Gantt</span><span class="pill ${planView==='liste'?'active':''}" onclick="planView='liste';R()">📋 Liste</span></div>`;
-    if(planView==='liste')return void(el.innerHTML=`<div class="fade-in">${pills}<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">📅 Planning</div><button class="btn btn-pri" onclick="mNT()">+ Tâche</button></div>
-      ${TASKS.length?`<table><thead><tr><th>Tâche</th><th>Catégorie</th><th>Début</th><th>Durée</th><th></th></tr></thead><tbody>${TASKS.map(t=>`<tr><td class="fw600">${t.name}</td><td><span class="tag" style="background:${t.color}20;color:${t.color}">${t.cat}</span></td><td class="fs12">J+${t.start}</td><td class="fs12">${t.dur}j</td><td><button class="btn btn-sm btn-ghost" style="color:var(--err)" onclick="TASKS=TASKS.filter(x=>x.id!==${t.id});R()">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="c-m" style="text-align:center;padding:32px">Aucune tâche.</div>'}</div></div>`);
-    el.innerHTML=`<div class="fade-in">${pills}<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">📅 Planning</div><button class="btn btn-pri" onclick="mNT()">+ Tâche</button></div>
-      ${TASKS.length?`<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:220px 1fr;min-width:800px"><div style="border-right:1px solid var(--brd)"><div style="height:32px;border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;font-size:11px;color:var(--txt-m);font-weight:700;text-transform:uppercase">Tâche</div>${TASKS.map(t=>`<div class="gantt-task">${t.name}</div>`).join('')}</div><div><div class="gantt-header">${['Fév.','Mars','Avr.'].map(m=>`<div class="gantt-month">${m}</div>`).join('')}</div>${TASKS.map(t=>`<div class="gantt-row"><div class="gantt-bar" style="left:${(t.start/total)*100}%;width:${(t.dur/total)*100}%;background:${t.color}">${t.cat}</div></div>`).join('')}</div></div></div>`:'<div class="c-m" style="text-align:center;padding:32px">Aucune tâche.</div>'}
-    </div></div>`;}
-
-  function rAI(){
-    const ts=[{id:'general',l:'💬 Général'},{id:'pvid',l:'📋 PVID'},{id:'expertise',l:'🔬 Expertise'},{id:'memoire',l:'📝 Mémoire'},{id:'normes',l:'📚 Normes'},{id:'planning',l:'📅 Planning'}];
-    el.innerHTML=`<div class="fade-in"><div class="card" style="border-top:3px solid var(--pri)"><div class="card-title">🤖 Générateur de prompts</div><div class="c-m fs13" style="margin-bottom:16px">Sélectionnez, personnalisez, copiez dans votre IA.</div>
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${ts.map(t=>`<span class="pill ${promptTopic===t.id?'active':''}" onclick="promptTopic='${t.id}';R()">${t.l}</span>`).join('')}</div>
-      <div class="grid-2" style="margin-bottom:16px"><div class="field"><label>Ouvrage</label><select class="input" id="ao"><option value="">— Aucun —</option>${OUV.map(o=>`<option value="${o.id}">${o.nom}</option>`).join('')}</select></div><div class="field"><label>Précisions</label><input class="input" id="ad" placeholder="Question ou détail..."></div></div>
-      <button class="btn btn-pri" onclick="genAI()">🔧 Générer</button><div id="aout" style="margin-top:16px"></div>
-    </div><div class="card"><div class="card-title">🌐 IA disponibles</div><div style="display:flex;gap:10px;flex-wrap:wrap"><a href="https://copilot.microsoft.com" target="_blank" class="ai-link">🟢 Copilot</a><a href="https://chatgpt.com" target="_blank" class="ai-link">🟣 ChatGPT</a><a href="https://gemini.google.com" target="_blank" class="ai-link">🔵 Gemini</a><a href="https://claude.ai" target="_blank" class="ai-link">🟠 Claude</a><a href="https://chat.mistral.ai" target="_blank" class="ai-link">⚪ Mistral</a></div></div></div>`;}
+function ouvCtx(o){
+  let s=`Nom: ${o.nom} | Type: ${o.type} | Client: ${cL(o.client)} | IQOA: ${o.iqoa} | Mat: ${o.mat||'?'} | Année: ${o.annee||'?'} | Dim: ${o.long||'?'}m × ${o.larg||'?'}m | Commune: ${o.commune||'?'} | Voie: ${o.voie||'?'}`;
+  if(o.rem)s+=` | Rem: ${o.rem}`;
+  const ds=DES.filter(d=>d.oid===o.id);
+  if(ds.length){s+='\nDÉSORDRES:';ds.forEach(d=>{s+=`\n- ${d.type} (sév.${d.sev}) sur ${d.elem||'?'}`;if(d.evol?.length>1){const f=d.evol[0],l=d.evol.at(-1);s+=` | Évolution: ${f.val}${d.unit||''} (${f.date}) → ${l.val}${d.unit||''} (${l.date}) [+${((l.val/f.val-1)*100).toFixed(0)}%]`;}});}
+  return s;
+}
+function aiLinks(){return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><a href="https://copilot.microsoft.com" target="_blank" class="ai-link">🟢 Copilot</a><a href="https://chatgpt.com" target="_blank" class="ai-link">🟣 ChatGPT</a><a href="https://gemini.google.com" target="_blank" class="ai-link">🔵 Gemini</a><a href="https://claude.ai" target="_blank" class="ai-link">🟠 Claude</a><a href="https://chat.mistral.ai" target="_blank" class="ai-link">⚪ Mistral</a></div>`;}
+function aiInteractBox(promptId,parseFunc){
+  return `<div class="ai-box">
+    <div class="ai-box-title">🤖 Interaction IA</div>
+    <div class="ai-step"><div class="ai-step-num">1</div><div class="ai-step-text">Copiez le prompt ci-dessus et collez-le dans votre IA préférée :</div></div>
+    ${aiLinks()}
+    <div class="ai-step" style="margin-top:14px"><div class="ai-step-num">2</div><div class="ai-step-text">Copiez la réponse de l'IA et collez-la ci-dessous :</div></div>
+    <textarea class="ai-response-area" id="${promptId}_resp" rows="5" placeholder="Collez ici la réponse complète de l'IA..."></textarea>
+    <button class="btn btn-acc" style="margin-top:10px" onclick="${parseFunc}('${promptId}_resp')">📥 Intégrer la réponse</button>
+    <span id="${promptId}_status" class="fs12 c-ok" style="margin-left:10px"></span>
+  </div>`;
 }
 
-// ══════ MODALS ══════
+// ═══════════════════ RENDER DISPATCH ═══════════════════
+function R(){
+  const el=document.getElementById('mc');
+  const fn={dashboard:rDash,ouvrages:rOuv,inspections:rInsp,desordres:rDes,normes:rNormes,documents:rDocs,planning:rPlan,ai:rAI};
+  (fn[M]||rDash)(el);
+}
+
+// ═══════════════════ DASHBOARD ═══════════════════
+function rDash(el){
+  const n3U=DES.filter(d=>d.sev==='3U').length;
+  el.innerHTML=`<div class="fade-in"><div class="grid-4" style="margin-bottom:24px">${[{l:'Ouvrages',v:OUV.length,c:'var(--pri)'},{l:'Désordres',v:DES.length,c:'var(--err)',s:n3U+' en 3U'},{l:'Inspections',v:INS.length,c:'var(--acc)'},{l:'Tâches',v:TASKS.length,c:'var(--ok)'}].map(s=>`<div class="card" style="border-top:3px solid ${s.c}"><div class="stat-num" style="color:${s.c}">${s.v}</div><div class="stat-label">${s.l}</div>${s.s?`<div class="stat-sub">${s.s}</div>`:''}</div>`).join('')}</div>
+  ${OUV.length===0?`<div class="card" style="text-align:center;padding:48px"><div style="font-size:48px;margin-bottom:16px">🌉</div><div class="fw700" style="font-size:18px;margin-bottom:8px">Bienvenue sur OA Expert v4</div><div class="c-m" style="margin-bottom:20px">Commencez par créer un ouvrage — l'IA vous aidera à compléter les données.</div><button class="btn btn-pri" onclick="nav('ouvrages');mNO()">+ Créer un ouvrage</button></div>`
+  :`<div class="card"><div class="card-title">🌉 Ouvrages</div><table><thead><tr><th>Nom</th><th>Type</th><th>IQOA</th><th>Désordres</th></tr></thead><tbody>${OUV.map(o=>{const nd=DES.filter(d=>d.oid===o.id).length;return`<tr class="clickable" onclick="selOuv=${o.id};nav('ouvrages')"><td class="fw600">${o.nom}</td><td class="c-m fs12">${o.type}</td><td>${iqB(o.iqoa)}</td><td class="fw600 ${nd>0?'c-err':''}">${nd}</td></tr>`;}).join('')}</tbody></table></div>`}
+  ${DES.filter(d=>d.evol?.length>1).length?`<div class="card"><div class="card-title">📈 Évolutions récentes</div>${DES.filter(d=>d.evol?.length>1).slice(-4).map(d=>{const o=OUV.find(x=>x.id===d.oid);const f=d.evol[0],l=d.evol.at(-1);const pct=((l.val/f.val-1)*100).toFixed(0);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--brd)"><div><span class="fw600">${d.type}</span> <span class="c-m fs12">sur ${o?.nom||'?'}</span></div><div style="display:flex;align-items:center;gap:8px"><span class="fs12 c-m">${f.val} → ${l.val} ${d.unit||''}</span><span class="tag ${parseInt(pct)>50?'tag-err':'tag-acc'}">+${pct}%</span></div></div>`;}).join('')}</div>`:''}
+  </div>`;
+}
+
+// ═══════════════════ OUVRAGES ═══════════════════
 function mNO(){document.getElementById('mr').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)clM()"><div class="modal">
   <div class="modal-title"><span>🌉 Nouvel ouvrage</span><button class="modal-close" onclick="clM()">✕</button></div>
   <div class="grid-2"><div class="field"><label>Nom *</label><input class="input" id="on" placeholder="Ex: Pont de Pontorson (PK 342+120)"></div>
@@ -217,77 +186,294 @@ function mNO(){document.getElementById('mr').innerHTML=`<div class="modal-overla
     <div class="field"><label>IQOA</label><select class="input" id="oq"><option>NE</option><option>1</option><option>2</option><option>2E</option><option>3</option><option>3U</option></select></div></div>
   <div class="field"><label>Matériaux</label><input class="input" id="om" placeholder="Acier, béton armé..."></div>
   <div class="grid-3"><div class="field"><label>Année</label><input class="input" id="oy" placeholder="1892"></div><div class="field"><label>Longueur (m)</label><input class="input" id="ol" placeholder="45.5"></div><div class="field"><label>Largeur (m)</label><input class="input" id="ow" placeholder="8.2"></div></div>
-  <div class="grid-2"><div class="field"><label>Commune</label><input class="input" id="ox" placeholder=""></div><div class="field"><label>Voie</label><input class="input" id="ov" placeholder="LGV / RD976..."></div></div>
-  <div class="field"><label>Remarques</label><textarea class="input" id="or" rows="3" placeholder="Nombre de travées, fondations, etc."></textarea></div>
-  <div class="field"><label>📎 Pièces jointes</label><input type="file" id="of" multiple style="display:none" onchange="shF('of','ofl')"><div class="file-attach" onclick="document.getElementById('of').click()">📁 Ajouter fichiers</div><div id="ofl"></div></div>
-  <div style="display:flex;gap:10px;margin-top:20px"><button class="btn btn-pri" onclick="sNO()">✅ Créer</button><button class="btn btn-ghost" onclick="clM()">Annuler</button></div>
+  <div class="grid-2"><div class="field"><label>Commune</label><input class="input" id="ox"></div><div class="field"><label>Voie</label><input class="input" id="ov" placeholder="LGV / RD976..."></div></div>
+  <div class="field"><label>Remarques</label><textarea class="input" id="or" rows="3" placeholder="Travées, fondations, particularités..."></textarea></div>
+  <div class="field"><label>📎 Pièces jointes (plans, photos, anciens rapports)</label><input type="file" id="of" multiple style="display:none" onchange="shF('of','ofl')"><div class="file-attach" onclick="document.getElementById('of').click()">📁 Cliquer pour ajouter</div><div id="ofl"></div></div>
+  <div class="ai-box"><div class="ai-box-title">🤖 Compléter avec l'IA</div>
+    <div class="c-m fs12" style="margin-bottom:10px">L'IA peut compléter les données manquantes à partir de vos informations ou pièces jointes.</div>
+    <button class="btn btn-pri btn-sm" onclick="genOuvPrompt()">🔧 Générer le prompt de complétion</button>
+    <div id="ouv-ai-zone"></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:20px"><button class="btn btn-pri" onclick="sNO()">✅ Créer l'ouvrage</button><button class="btn btn-ghost" onclick="clM()">Annuler</button></div>
 </div></div>`;}
+
+function genOuvPrompt(){
+  const nom=document.getElementById('on').value||'[nom à compléter]';
+  const type=document.getElementById('ot').value;
+  const files=[...document.getElementById('of').files].map(f=>f.name);
+  const p=AIP+`\n\nJe crée une fiche ouvrage. Complète les données manquantes et propose des informations techniques pertinentes.\nDonnées actuelles:\n- Nom: ${nom}\n- Type: ${type}\n- Matériaux: ${document.getElementById('om').value||'?'}\n- Année: ${document.getElementById('oy').value||'?'}\n- Commune: ${document.getElementById('ox').value||'?'}${files.length?'\n- Documents joints: '+files.join(', '):''}
+\nRéponds avec ces informations COMPLÉTÉES au format structuré:\n- Matériaux probables:\n- Nombre de travées probable:\n- Type de fondations probable:\n- Normes applicables:\n- Désordres typiques à surveiller pour ce type d'ouvrage:\n- Recommandations d'inspection:\n- Toute autre information technique utile:`;
+  document.getElementById('ouv-ai-zone').innerHTML=`<div class="prompt-box" id="ouvp" style="margin-top:12px">${esc(p)}</div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-pri btn-sm" onclick="cpT('ouvp')">📋 Copier</button><span id="ouvps" class="fs12 c-ok"></span></div>
+    ${aiInteractBox('ouvp','parseOuvResp')}`;
+}
+
+function parseOuvResp(id){
+  const resp=document.getElementById(id).value.trim();
+  if(!resp){alert('Collez d\'abord la réponse de l\'IA');return;}
+  const rem=document.getElementById('or');
+  rem.value=(rem.value?rem.value+'\n\n':'')+'--- Données complétées par IA ---\n'+resp;
+  document.getElementById(id.replace('_resp','_status')).textContent='✅ Réponse intégrée dans les remarques !';
+}
 
 function sNO(){const n=document.getElementById('on').value.trim();if(!n)return alert('Nom obligatoire');OUV.push({id:uid(),nom:n,type:document.getElementById('ot').value,client:document.getElementById('oc').value,iqoa:document.getElementById('oq').value,mat:document.getElementById('om').value,annee:document.getElementById('oy').value,long:document.getElementById('ol').value,larg:document.getElementById('ow').value,commune:document.getElementById('ox').value,voie:document.getElementById('ov').value,rem:document.getElementById('or').value,files:[...document.getElementById('of').files].map(f=>f.name),created:new Date().toISOString().slice(0,10)});clM();R();}
 
+function rOuv(el){
+  if(selOuv){const o=OUV.find(x=>x.id===selOuv);if(!o){selOuv=null;return rOuv(el);}const ds=DES.filter(d=>d.oid===o.id);
+    el.innerHTML=`<div class="fade-in"><div style="cursor:pointer;color:var(--txt-m);font-size:13px;margin-bottom:20px" onclick="selOuv=null;R()">← Retour</div>
+      <div class="card"><div style="display:flex;justify-content:space-between"><div><div style="font-size:20px;font-weight:800;margin-bottom:6px">${o.nom}</div><div class="c-m">${o.type} • ${cI(o.client)} ${cL(o.client)}</div></div>${iqB(o.iqoa)}</div>
+        <div class="grid-3" style="margin-top:20px">${[['Matériaux',o.mat||'–'],['Année',o.annee||'–'],['Dimensions',(o.long||'?')+'m × '+(o.larg||'?')+'m'],['Commune',o.commune||'–'],['Voie',o.voie||'–'],['Créé',o.created]].map(([l,v])=>`<div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--brd)"><div class="fs11 c-m fw600" style="text-transform:uppercase">${l}</div><div class="fs13 fw600" style="margin-top:4px">${v}</div></div>`).join('')}</div>
+        ${o.rem?`<div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--brd)"><div class="fs11 c-m fw600">REMARQUES</div><div class="fs13" style="margin-top:4px;white-space:pre-line">${o.rem}</div></div>`:''}
+      </div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="card-title" style="margin:0">⚠️ Désordres (${ds.length})</div><button class="btn btn-pri btn-sm" onclick="mND(${o.id})">+ Ajouter</button></div>
+        ${ds.length?`<table><thead><tr><th>Type</th><th>Élément</th><th>Sévérité</th><th>Mesures</th><th></th></tr></thead><tbody>${ds.map(d=>`<tr class="clickable" onclick="selDes=${d.id};nav('desordres')"><td class="fw600">${d.type}</td><td class="c-m">${d.elem||'–'}</td><td>${iqB(d.sev)}</td><td class="fs12">${d.evol?.length||0} pts</td><td class="c-pri fs12">Voir ↗</td></tr>`).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:20px">Aucun désordre</div>'}
+      </div></div>`;return;}
+  el.innerHTML=`<div class="fade-in"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">🌉 Patrimoine (${OUV.length})</div><button class="btn btn-pri" onclick="mNO()">+ Nouvel ouvrage</button></div>
+    ${OUV.length?`<table><thead><tr><th>Ouvrage</th><th>Type</th><th>Client</th><th>IQOA</th><th>Désordres</th></tr></thead><tbody>${OUV.map(o=>{const nd=DES.filter(d=>d.oid===o.id).length;return`<tr class="clickable" onclick="selOuv=${o.id};R()"><td class="fw600">${o.nom}</td><td class="c-m fs12">${o.type}</td><td>${cI(o.client)} <span class="c-m fs12">${cL(o.client)}</span></td><td>${iqB(o.iqoa)}</td><td class="fw600 ${nd?'c-err':''}">${nd}</td></tr>`;}).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:32px">Cliquez sur "+ Nouvel ouvrage" pour commencer.</div>'}
+  </div></div>`;
+}
+
+// ═══════════════════ INSPECTIONS ═══════════════════
 function mNI(){if(!OUV.length)return alert('Créez d\'abord un ouvrage');document.getElementById('mr').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)clM()"><div class="modal">
   <div class="modal-title"><span>🔍 Nouvelle campagne</span><button class="modal-close" onclick="clM()">✕</button></div>
-  <div class="grid-2"><div class="field"><label>Ouvrage(s) *</label><select class="input" id="io" multiple style="height:90px">${OUV.map(o=>`<option value="${o.id}">${o.nom}</option>`).join('')}</select><div class="fs11 c-d" style="margin-top:4px">Ctrl+clic = multi</div></div>
-    <div class="field"><label>Type</label><select class="input" id="it"><option>PVID – Procès-verbal inspection détaillée</option><option>IDP – Inspection détaillée périodique</option><option>VST – Visite systématique technique</option><option>Expertise spécifique</option><option>Inspection subaquatique</option><option>Surveillance renforcée</option></select></div></div>
-  <div class="grid-2"><div class="field"><label>Date</label><input type="date" class="input" id="id" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Inspecteur(s)</label><input class="input" id="ii" placeholder="Noms"></div></div>
+  <div class="grid-2"><div class="field"><label>Ouvrage(s) *</label><select class="input" id="io" multiple style="height:80px">${OUV.map(o=>`<option value="${o.id}">${o.nom}</option>`).join('')}</select></div>
+    <div class="field"><label>Type</label><select class="input" id="it"><option>PVID</option><option>IDP</option><option>VST</option><option>Expertise</option><option>Inspection subaquatique</option><option>Surveillance renforcée</option></select></div></div>
+  <div class="grid-2"><div class="field"><label>Date</label><input type="date" class="input" id="id" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Inspecteur(s)</label><input class="input" id="ii"></div></div>
   <div class="field"><label>Moyens</label><input class="input" id="im" placeholder="Nacelle, drone..."></div>
   <div class="field"><label>📎 Documents</label><input type="file" id="if2" multiple style="display:none" onchange="shF('if2','ifl')"><div class="file-attach" onclick="document.getElementById('if2').click()">📁 Ajouter</div><div id="ifl"></div></div>
   <div style="display:flex;gap:10px;margin-top:20px"><button class="btn btn-pri" onclick="sNI()">✅ Créer</button><button class="btn btn-ghost" onclick="clM()">Annuler</button></div>
 </div></div>`;}
+function sNI(){const s=[...document.getElementById('io').selectedOptions].map(o=>parseInt(o.value));if(!s.length)return alert('Sélectionnez un ouvrage');INS.push({id:uid(),ouvs:s,type:document.getElementById('it').value,date:document.getElementById('id').value,insp:document.getElementById('ii').value,moyens:document.getElementById('im').value});clM();R();}
+function rInsp(el){el.innerHTML=`<div class="fade-in"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">🔍 Campagnes (${INS.length})</div><button class="btn btn-pri" onclick="mNI()">+ Nouvelle campagne</button></div>
+  ${INS.length?`<table><thead><tr><th>Réf.</th><th>Ouvrage(s)</th><th>Type</th><th>Date</th><th>Inspecteur</th></tr></thead><tbody>${INS.map(c=>`<tr><td class="fw700 c-acc fs12">INS-${String(c.id).padStart(3,'0')}</td><td class="fw600 fs12">${c.ouvs.map(oid=>OUV.find(o=>o.id===oid)?.nom||'?').join(', ')}</td><td><span class="tag tag-pri">${c.type}</span></td><td class="fs12">${c.date}</td><td class="fs12">${c.insp||'–'}</td></tr>`).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:32px">Aucune campagne.</div>'}
+</div></div>`;}
 
-function sNI(){const s=[...document.getElementById('io').selectedOptions].map(o=>parseInt(o.value));if(!s.length)return alert('Sélectionnez un ouvrage');INS.push({id:uid(),ouvs:s,type:document.getElementById('it').value,date:document.getElementById('id').value,insp:document.getElementById('ii').value,moyens:document.getElementById('im').value,files:[...document.getElementById('if2').files].map(f=>f.name)});clM();R();}
-
-function mND(){if(!OUV.length)return alert('Créez d\'abord un ouvrage');const ft=OUV[0]?.type||'Pont métallique';document.getElementById('mr').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)clM()"><div class="modal" style="max-width:780px">
+// ═══════════════════ DESORDRES + EVOLUTION ═══════════════════
+function mND(preOuv){if(!OUV.length)return alert('Créez d\'abord un ouvrage');const ft=OUV[0]?.type;document.getElementById('mr').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)clM()"><div class="modal" style="max-width:780px">
   <div class="modal-title"><span>⚠️ Nouveau désordre</span><button class="modal-close" onclick="clM()">✕</button></div>
-  <div class="grid-2"><div class="field"><label>Ouvrage *</label><select class="input" id="do2" onchange="uDC()">${OUV.map(o=>`<option value="${o.id}" data-type="${o.type}">${o.nom} (${o.type})</option>`).join('')}</select></div>
+  <div class="grid-2"><div class="field"><label>Ouvrage *</label><select class="input" id="do2" onchange="uDC()">${OUV.map(o=>`<option value="${o.id}" data-type="${o.type}" ${preOuv==o.id?'selected':''}>${o.nom}</option>`).join('')}</select></div>
     <div class="field"><label>Sévérité</label><select class="input" id="ds"><option>1</option><option>2</option><option selected>2E</option><option>3</option><option>3U</option></select></div></div>
-  <div class="field"><label>Localisation / Élément</label><input class="input" id="de" placeholder="Poutre PG, Travée 3, Culée C0..."></div>
-  <div class="card" style="background:var(--bg);max-height:280px;overflow-y:auto" id="dcl">${bDL(ft)}</div>
-  <div class="field" style="margin-top:12px"><label>Saisie manuelle</label><div style="display:flex;gap:8px"><input class="input" id="dcu" placeholder="Nouveau type d'avarie..."><button class="btn btn-ghost btn-sm" onclick="aCD()">+ Ajouter</button></div></div>
-  <div class="field"><label>Remarques</label><textarea class="input" id="dr" rows="2"></textarea></div>
+  <div class="field"><label>Localisation / Élément</label><input class="input" id="de" placeholder="Poutre PG, Travée 3..."></div>
+  <div class="card" style="background:var(--bg);max-height:250px;overflow-y:auto" id="dcl">${bDL(preOuv?OUV.find(o=>o.id===preOuv)?.type:ft)}</div>
+  <div class="field" style="margin-top:10px"><label>Saisie manuelle</label><div style="display:flex;gap:8px"><input class="input" id="dcu" placeholder="Nouveau type..."><button class="btn btn-ghost btn-sm" onclick="aCD()">+ Ajouter</button></div></div>
+  <div class="grid-3"><div class="field"><label>Valeur mesurée</label><input class="input" id="dv" placeholder="Ex: 0.5" type="number" step="0.01"></div>
+    <div class="field"><label>Unité</label><select class="input" id="du"><option>mm</option><option>cm</option><option>m</option><option>m²</option><option>%</option><option>sans</option></select></div>
+    <div class="field"><label>Date mesure</label><input type="date" class="input" id="ddt" value="${new Date().toISOString().slice(0,10)}"></div></div>
   <div style="display:flex;gap:10px;margin-top:16px"><button class="btn btn-pri" onclick="sND()">✅ Enregistrer</button><button class="btn btn-ghost" onclick="clM()">Annuler</button></div>
 </div></div>`;}
 
-function bDL(t){const cs=DCAT[t]||DCAT['Pont métallique'];return`<div class="fs12 c-m fw600" style="margin-bottom:8px">📋 Catalogue — ${t}</div>`+cs.map(c=>`<div class="dcat"><div class="dcat-t">${c.c}</div>${(c.i||c.items||[]).map(it=>`<div class="di" onclick="this.classList.toggle('sel')" data-name="${it}"><span style="width:14px;height:14px;border-radius:3px;border:2px solid var(--brd);display:inline-block;flex-shrink:0"></span>${it}</div>`).join('')}</div>`).join('');}
+function bDL(t){const cs=DCAT[t||'Pont métallique']||DCAT['Pont métallique'];return`<div class="fs12 c-m fw600" style="margin-bottom:8px">📋 Catalogue — ${t||'Pont métallique'}</div>`+cs.map(c=>`<div class="dcat"><div class="dcat-t">${c.c}</div>${c.i.map(it=>`<div class="di" onclick="this.classList.toggle('sel')" data-name="${it}"><span style="width:14px;height:14px;border-radius:3px;border:2px solid var(--brd);display:inline-block;flex-shrink:0"></span>${it}</div>`).join('')}</div>`).join('');}
 function uDC(){const s=document.getElementById('do2');document.getElementById('dcl').innerHTML=bDL(s.options[s.selectedIndex].dataset.type);}
 function aCD(){const v=document.getElementById('dcu').value.trim();if(!v)return;document.getElementById('dcl').innerHTML+=`<div class="di sel" data-name="${v}"><span style="width:14px;height:14px;border-radius:3px;border:2px solid var(--pri);background:var(--pri-g);display:inline-block;flex-shrink:0"></span>${v} <span class="tag tag-acc" style="margin-left:8px">Manuel</span></div>`;document.getElementById('dcu').value='';}
-function sND(){const oid=parseInt(document.getElementById('do2').value),sev=document.getElementById('ds').value,elem=document.getElementById('de').value,rem=document.getElementById('dr').value;const sel=[...document.querySelectorAll('.di.sel')].map(e=>e.dataset.name);if(!sel.length)return alert('Sélectionnez au moins un désordre');sel.forEach(type=>{DES.push({id:uid(),oid,type,elem,sev,rem,date:new Date().toISOString().slice(0,10)});});clM();R();}
 
+function sND(){
+  const oid=parseInt(document.getElementById('do2').value),sev=document.getElementById('ds').value,elem=document.getElementById('de').value;
+  const val=parseFloat(document.getElementById('dv').value),unit=document.getElementById('du').value,ddate=document.getElementById('ddt').value;
+  const sel=[...document.querySelectorAll('.di.sel')].map(e=>e.dataset.name);
+  if(!sel.length)return alert('Sélectionnez un désordre');
+  sel.forEach(type=>{
+    const evol=val?[{date:ddate,val}]:[];
+    DES.push({id:uid(),oid,type,elem,sev,unit:unit!=='sans'?unit:'',evol,date:ddate||new Date().toISOString().slice(0,10)});
+  });clM();R();
+}
+
+// Add measurement to existing defect
+function mAddMes(did){
+  const d=DES.find(x=>x.id===did);if(!d)return;
+  document.getElementById('mr').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)clM()"><div class="modal" style="max-width:450px">
+    <div class="modal-title"><span>📏 Nouvelle mesure</span><button class="modal-close" onclick="clM()">✕</button></div>
+    <div class="c-m fs13" style="margin-bottom:16px"><strong>${d.type}</strong> sur ${d.elem||'–'}</div>
+    <div class="grid-3"><div class="field"><label>Valeur</label><input class="input" id="mv" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Unité</label><input class="input" id="mu" value="${d.unit||'mm'}" readonly></div>
+      <div class="field"><label>Date</label><input type="date" class="input" id="md" value="${new Date().toISOString().slice(0,10)}"></div></div>
+    <div class="field"><label>Sévérité actuelle</label><select class="input" id="ms"><option ${d.sev==='1'?'selected':''}>1</option><option ${d.sev==='2'?'selected':''}>2</option><option ${d.sev==='2E'?'selected':''}>2E</option><option ${d.sev==='3'?'selected':''}>3</option><option ${d.sev==='3U'?'selected':''}>3U</option></select></div>
+    <button class="btn btn-pri" onclick="sAddMes(${did})">✅ Enregistrer</button>
+  </div></div>`;
+}
+function sAddMes(did){
+  const d=DES.find(x=>x.id===did);if(!d)return;
+  const val=parseFloat(document.getElementById('mv').value);if(isNaN(val))return alert('Valeur requise');
+  d.evol.push({date:document.getElementById('md').value,val});
+  d.evol.sort((a,b)=>a.date.localeCompare(b.date));
+  d.sev=document.getElementById('ms').value;
+  d.date=document.getElementById('md').value;
+  clM();R();
+}
+
+function drawEvo(id){
+  const d=DES.find(x=>x.id===id);if(!d||!d.evol?.length)return;
+  const svg=d3.select('#evo-'+id);svg.selectAll('*').remove();
+  const rect=document.getElementById('evo-'+id)?.getBoundingClientRect();
+  const w=rect?.width||400,h=160,m={t:15,r:15,b:30,l:45};
+  svg.attr('viewBox',`0 0 ${w} ${h}`);
+  const data=d.evol,color=d.sev==='3U'?'#EF4444':d.sev==='3'?'#F59E0B':'#3B82F6';
+  const x=d3.scalePoint().domain(data.map(d=>d.date)).range([m.l,w-m.r]).padding(0.2);
+  const y=d3.scaleLinear().domain([0,d3.max(data,d=>d.val)*1.3]).range([h-m.b,m.t]);
+  const line=d3.line().x(d=>x(d.date)).y(d=>y(d.val)).curve(d3.curveMonotoneX);
+  const area=d3.area().x(d=>x(d.date)).y0(h-m.b).y1(d=>y(d.val)).curve(d3.curveMonotoneX);
+  const gd=svg.append('defs').append('linearGradient').attr('id','ag'+id).attr('x1',0).attr('y1',0).attr('x2',0).attr('y2',1);
+  gd.append('stop').attr('offset','0%').attr('stop-color',color).attr('stop-opacity',0.3);
+  gd.append('stop').attr('offset','100%').attr('stop-color',color).attr('stop-opacity',0.02);
+  svg.append('path').datum(data).attr('d',area).attr('fill','url(#ag'+id+')');
+  svg.append('path').datum(data).attr('d',line).attr('fill','none').attr('stroke',color).attr('stroke-width',2.5);
+  data.forEach(p=>{svg.append('circle').attr('cx',x(p.date)).attr('cy',y(p.val)).attr('r',4).attr('fill','#141D2F').attr('stroke',color).attr('stroke-width',2);
+    svg.append('text').attr('x',x(p.date)).attr('y',y(p.val)-10).attr('text-anchor','middle').attr('fill',color).attr('font-size',10).attr('font-weight',700).attr('font-family',"'JetBrains Mono'").text(p.val);});
+  svg.append('g').attr('transform',`translate(0,${h-m.b})`).call(d3.axisBottom(x).tickSize(0)).select('.domain').remove();
+  svg.selectAll('.tick text').attr('fill','#8B9DC3').attr('font-size',9).attr('font-family',"'JetBrains Mono'");
+}
+
+function rDes(el){
+  if(selDes){const d=DES.find(x=>x.id===selDes);if(!d){selDes=null;return rDes(el);}
+    const o=OUV.find(x=>x.id===d.oid);const hasEvo=d.evol?.length>1;
+    const pct=hasEvo?((d.evol.at(-1).val/d.evol[0].val-1)*100).toFixed(0):'–';
+    el.innerHTML=`<div class="fade-in"><div style="cursor:pointer;color:var(--txt-m);font-size:13px;margin-bottom:20px" onclick="selDes=null;R()">← Retour</div>
+      <div class="grid-2">
+        <div class="card"><div class="card-title">Fiche désordre #${d.id}</div>
+          ${[['Ouvrage',o?.nom||'?'],['Type',d.type],['Élément',d.elem||'–'],['Sévérité',iqB(d.sev)],['Unité',d.unit||'–'],['Date',d.date]].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--brd)"><span class="c-m fs13">${l}</span><span class="fw600 fs13">${v}</span></div>`).join('')}
+          <div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-pri btn-sm" onclick="mAddMes(${d.id})">📏 Nouvelle mesure</button><button class="btn btn-acc btn-sm" onclick="genDesExpertise(${d.id})">🔬 Expertise IA</button></div>
+        </div>
+        <div class="card"><div class="card-title">📈 Évolution${hasEvo?' ('+d.evol.length+' mesures)':''}</div>
+          ${d.evol?.length?`<svg id="evo-${d.id}" style="width:100%;height:160px"></svg>`:'<div class="c-m fs13" style="text-align:center;padding:20px">Pas encore de mesures</div>'}
+          ${hasEvo?`<div style="margin-top:12px;padding:12px;background:${d.sev==='3U'?'var(--err-g)':'var(--acc-g)'};border-radius:8px;border:1px solid ${d.sev==='3U'?'rgba(239,68,68,0.3)':'rgba(245,158,11,0.3)'}">
+            <div class="fs12 fw700" style="color:${d.sev==='3U'?'var(--err)':'var(--acc)'}">⚠️ Progression : +${pct}%</div>
+            <div class="fs11 c-m">${d.evol[0].val}${d.unit} (${d.evol[0].date}) → ${d.evol.at(-1).val}${d.unit} (${d.evol.at(-1).date})</div></div>`:''}
+          ${d.evol?.length?`<div style="margin-top:12px">${d.evol.map(e=>`<div class="evo-row"><span class="fw600" style="min-width:80px;font-family:var(--mono)">${e.date}</span><span class="c-pri fw700">${e.val} ${d.unit}</span></div>`).join('')}</div>`:''}
+        </div>
+      </div>
+      <div id="des-ai-zone"></div>
+    </div>`;
+    if(d.evol?.length)setTimeout(()=>drawEvo(d.id),100);return;
+  }
+  el.innerHTML=`<div class="fade-in"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">⚠️ Désordres (${DES.length})</div><button class="btn btn-pri" onclick="mND()">+ Nouveau désordre</button></div>
+    ${DES.length?`<table><thead><tr><th>Ouvrage</th><th>Type</th><th>Élément</th><th>Sévérité</th><th>Mesures</th><th>Évolution</th></tr></thead><tbody>${DES.map(d=>{const o=OUV.find(x=>x.id===d.oid);const hasE=d.evol?.length>1;const pct=hasE?((d.evol.at(-1).val/d.evol[0].val-1)*100).toFixed(0):'–';return`<tr class="clickable" onclick="selDes=${d.id};R()"><td class="fs12">${o?.nom||'?'}</td><td class="fw600">${d.type}</td><td class="c-m fs12">${d.elem||'–'}</td><td>${iqB(d.sev)}</td><td class="fs12">${d.evol?.length||0}</td><td>${hasE?`<span class="tag ${parseInt(pct)>50?'tag-err':'tag-acc'}">+${pct}%</span>`:'–'}</td></tr>`;}).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:32px">Aucun désordre.</div>'}
+  </div></div>`;
+}
+
+function genDesExpertise(did){
+  const d=DES.find(x=>x.id===did);if(!d)return;const o=OUV.find(x=>x.id===d.oid);
+  const p=AIP+`\n\nRéalise une EXPERTISE PATHOLOGIQUE pour ce désordre :\n${ouvCtx(o)}\n\nDÉSORDRE CIBLÉ: ${d.type} (sévérité ${d.sev}) sur ${d.elem||'élément non précisé'}\nMesures: ${d.evol?.map(e=>e.val+' '+d.unit+' le '+e.date).join(', ')||'aucune'}
+\nStructure attendue:\n1. Description du désordre\n2. Analyse des causes probables\n3. Évaluation de la sévérité et évolution prévisible\n4. Préconisations de réparation (avec normes : STRRES RECO N°4, guides CEREMA, etc.)\n5. Urgence d'intervention\n6. Estimatif budgétaire indicatif`;
+  document.getElementById('des-ai-zone').innerHTML=`<div class="card" style="border-top:3px solid var(--acc)"><div class="card-title">🔬 Expertise IA</div>
+    <div class="prompt-box" id="desxp">${esc(p)}</div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-pri btn-sm" onclick="cpT('desxp')">📋 Copier</button><span id="desxps" class="fs12 c-ok"></span></div>
+    ${aiInteractBox('desxp','parseDesResp')}
+  </div>`;
+}
+function parseDesResp(id){
+  const resp=document.getElementById(id).value.trim();if(!resp)return alert('Collez la réponse');
+  const d=DES.find(x=>x.id===selDes);if(d){d.expertise=resp;}
+  document.getElementById(id.replace('_resp','_status')).textContent='✅ Expertise enregistrée !';
+}
+
+// ═══════════════════ NORMES ═══════════════════
+function rNormes(el){
+  const orgs=[...new Set(NDB.map(n=>n.o))];
+  const f=NDB.filter(n=>(normsOrg==='all'||n.o===normsOrg)&&(normsSearch===''||(n.t+n.r+n.o+n.d).toLowerCase().includes(normsSearch.toLowerCase())));
+  el.innerHTML=`<div class="fade-in"><div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+    <input class="input" id="ns" style="max-width:300px" placeholder="🔍 Rechercher..." value="${normsSearch}">
+    <span class="pill ${normsOrg==='all'?'active':''}" onclick="normsOrg='all';R()">Tous</span>
+    ${orgs.map(o=>`<span class="pill ${normsOrg===o?'active':''}" onclick="normsOrg='${o}';R()">${o}</span>`).join('')}
+  </div><div class="card"><div class="card-title">📚 Base (${f.length}/${NDB.length})</div>
+    <table><thead><tr><th>Org.</th><th>Réf.</th><th>Titre</th><th>Domaine</th><th>Lien</th></tr></thead>
+    <tbody>${f.map(n=>`<tr><td class="fw700 fs12 c-acc">${n.o}</td><td class="fw600 fs12" style="font-family:var(--mono)">${n.r}</td><td>${n.t}</td><td><span class="tag tag-pri">${n.d}</span></td><td>${n.u?`<a href="${n.u}" target="_blank" class="fs12">📄 Consulter</a>`:'<span class="fs11 c-d">—</span>'}</td></tr>`).join('')}</tbody></table>
+  </div></div>`;
+  document.getElementById('ns')?.addEventListener('input',e=>{normsSearch=e.target.value;R();});
+}
+
+// ═══════════════════ DOCUMENTS (PV, Expertise, Mémoire) ═══════════════════
+function rDocs(el){
+  const types=[{id:'pvid',l:'📋 PV Inspection'},{id:'expertise',l:'🔬 Expertise'},{id:'memoire',l:'📝 Mémoire technique'}];
+  el.innerHTML=`<div class="fade-in">
+    <div style="display:flex;gap:8px;margin-bottom:20px">${types.map(t=>`<span class="pill ${docType===t.id?'active':''}" onclick="docType='${t.id}';R()">${t.l}</span>`).join('')}</div>
+    <div class="card" style="border-top:3px solid var(--pri)">
+      <div class="card-title">${docType==='pvid'?'📋 Générateur PV d\'inspection':docType==='expertise'?'🔬 Compte-rendu d\'expertise':'📝 Mémoire technique'}</div>
+      <div class="c-m fs13" style="margin-bottom:16px">Renseignez les données, l'IA générera le document complet avec toutes les données de la plateforme (ouvrages, désordres, évolutions).</div>
+      <div class="grid-2"><div class="field"><label>Ouvrage</label><select class="input" id="do">${OUV.length?OUV.map(o=>`<option value="${o.id}">${o.nom}</option>`).join(''):'<option>— Créez un ouvrage —</option>'}</select></div>
+        ${docType==='pvid'?`<div class="field"><label>Format</label><select class="input" id="df"><option value="routier">🛣️ Routier (CEREMA/IQOA)</option><option value="sncf">🚆 Ferroviaire (SNCF/IN 1256)</option></select></div>`:'<div></div>'}
+      </div>
+      <div class="grid-2"><div class="field"><label>Date</label><input type="date" class="input" id="dd" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Rédacteur(s)</label><input class="input" id="di2" placeholder="Noms"></div></div>
+      ${docType==='pvid'?`<div class="grid-2"><div class="field"><label>Moyens</label><input class="input" id="dm" placeholder="Nacelle, drone..."></div><div class="field"><label>Météo</label><input class="input" id="dw" placeholder="Temps clair, 12°C"></div></div>`:''}
+      <div class="field"><label>Constatations / Contexte</label><textarea class="input" id="dc" rows="4" placeholder="${docType==='memoire'?'Objet du marché, exigences, contraintes...':'Décrivez les désordres, localisations, mesures...'}"></textarea></div>
+      <div class="field"><label>📎 Documents annexes</label><input type="file" id="dff" multiple style="display:none" onchange="shF('dff','dfl')"><div class="file-attach" onclick="document.getElementById('dff').click()">📁 Ajouter</div><div id="dfl"></div></div>
+      <button class="btn btn-pri" onclick="genDoc()" style="margin-top:8px">🤖 Générer avec l'IA</button>
+      <div id="dout" style="margin-top:16px"></div>
+    </div></div>`;
+}
+
+function genDoc(){
+  const oid=document.getElementById('do')?.value,ouv=OUV.find(o=>o.id==oid);
+  const date=document.getElementById('dd').value,red=document.getElementById('di2').value;
+  const constat=document.getElementById('dc').value;
+  const ctx=ouv?ouvCtx(ouv):'Aucun ouvrage sélectionné';
+  let tpl='';
+  if(docType==='pvid'){
+    const fmt=document.getElementById('df')?.value||'routier';
+    const moy=document.getElementById('dm')?.value||'',meteo=document.getElementById('dw')?.value||'';
+    tpl=fmt==='routier'?`Génère un PVID ROUTIER conforme ITSEOA/IQOA/CEREMA.\nSTRUCTURE: 1. Présentation ouvrage + Conditions inspection 2. Plan de situation 3. Rappel dernières conclusions 4. Constatations (4.1 Abords, 4.2 Superstructures: chaussée/joints/retenue/longrines/drainage, 4.3 Structure: intrados/culées/piles/AA) 5. Conclusion + Cotation IQOA. Annexes: Plan, Relevé défauts, Photos.`
+    :`Génère un PVID FERROVIAIRE SNCF conforme IN 1256.\nSTRUCTURE: Page garde, 1. Renseignements généraux (repérage, caractéristiques, admin) 2. Historique 3. Déroulé visite (conditions, équipe, moyens, météo) 4. Constatations (environnement, structure, étanchéité, eaux) 5. Synthèse/Conclusions. Annexes: Photos, Relevé avaries.`;
+    tpl+=`\nMoyens: ${moy||'?'} | Météo: ${meteo||'?'}`;
+  } else if(docType==='expertise'){
+    tpl=`Génère un COMPTE-RENDU D'EXPERTISE complet.\nSTRUCTURE: 1. Objet de l'expertise 2. Description de l'ouvrage 3. Historique des inspections et évolution des désordres 4. Constatations détaillées 5. Diagnostic (analyse causes, mécanismes) 6. Évaluation structurelle 7. Préconisations de réparation (avec normes) 8. Priorité d'intervention 9. Estimation budgétaire 10. Conclusion`;
+  } else {
+    tpl=`Génère un MÉMOIRE TECHNIQUE pour appel d'offres.\nSTRUCTURE: 1. Présentation entreprise 2. Compréhension mission 3. Méthodologie détaillée 4. Moyens humains et matériels 5. Planning (Gantt) 6. PPSPS/Sécurité 7. PAQ/Qualité 8. Références normatives`;
+  }
+  const full=AIP+'\n\n'+tpl+'\n\nDONNÉES PLATEFORME:\n'+ctx+'\nDate: '+date+' | Rédacteur: '+(red||'?')+(constat?'\nCONSTATATIONS: '+constat:'')+'\n\nRédige le document complet, structuré, professionnel. INTÈGRE l\'évolution des désordres s\'il y en a.';
+  document.getElementById('dout').innerHTML=`<div class="prompt-box" id="docp">${esc(full)}</div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-pri btn-sm" onclick="cpT('docp')">📋 Copier</button><span id="docps" class="fs12 c-ok"></span></div>
+    ${aiInteractBox('docp','parseDocResp')}`;
+}
+function parseDocResp(id){
+  const resp=document.getElementById(id).value.trim();if(!resp)return alert('Collez la réponse');
+  document.getElementById(id.replace('_resp','_status')).textContent='✅ Document généré ! Vous pouvez le copier et le mettre en forme.';
+  // Show formatted response
+  const zone=document.getElementById(id).parentElement;
+  zone.insertAdjacentHTML('beforeend',`<div class="card" style="margin-top:16px;border-top:3px solid var(--ok)"><div class="card-title">📄 Document généré</div><div style="white-space:pre-line;font-size:13px;line-height:1.8">${esc(resp)}</div></div>`);
+}
+
+// ═══════════════════ PLANNING ═══════════════════
 function mNT(){document.getElementById('mr').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)clM()"><div class="modal" style="max-width:500px">
   <div class="modal-title"><span>📅 Nouvelle tâche</span><button class="modal-close" onclick="clM()">✕</button></div>
   <div class="field"><label>Nom *</label><input class="input" id="tn" placeholder="PVID Pont de Pontorson"></div>
   <div class="grid-2"><div class="field"><label>Catégorie</label><select class="input" id="tc"><option>Inspection</option><option>Expertise</option><option>Travaux</option><option>Rapport</option><option>AO</option><option>Sécurité</option><option>Réunion</option><option>Autre</option></select></div>
     <div class="field"><label>Durée (jours)</label><input type="number" class="input" id="td" value="5" min="1"></div></div>
-  <div class="field"><label>Jour de début (J+0 = 1er fév.)</label><input type="number" class="input" id="ts" value="0" min="0"></div>
+  <div class="field"><label>Jour de début (J+0 = 1er fév.)</label><input type="number" class="input" id="ts2" value="0" min="0"></div>
   <div style="display:flex;gap:10px;margin-top:20px"><button class="btn btn-pri" onclick="sNT()">✅ Ajouter</button><button class="btn btn-ghost" onclick="clM()">Annuler</button></div>
 </div></div>`;}
-
-function sNT(){const n=document.getElementById('tn').value.trim();if(!n)return alert('Nom obligatoire');const cc={'Inspection':'var(--pri)','Expertise':'var(--acc)','Travaux':'var(--err)','Rapport':'var(--ok)','AO':'#8B5CF6','Sécurité':'#EC4899','Réunion':'#06B6D4','Autre':'var(--txt-d)'};const c=document.getElementById('tc').value;TASKS.push({id:uid(),name:n,cat:c,start:parseInt(document.getElementById('ts').value)||0,dur:parseInt(document.getElementById('td').value)||5,color:cc[c]||'var(--pri)'});clM();R();}
-
-function genPV(){
-  const oid=document.getElementById('do')?.value,ouv=OUV.find(o=>o.id==oid),fmt=document.getElementById('df').value,
-    date=document.getElementById('dd').value,insp=document.getElementById('di').value,moy=document.getElementById('dm').value,
-    meteo=document.getElementById('dw').value,constat=document.getElementById('dc').value;
-  const ds=ouv?DES.filter(d=>d.oid===ouv.id):[];
-  let tpl=fmt==='routier'?`Génère un PVID format ROUTIER conforme ITSEOA/IQOA/CEREMA.\nSTRUCTURE:\n1. Présentation ouvrage – Conditions inspection (identification, caractéristiques, conditions)\n2. Plan de situation\n3. Rappel dernières conclusions\n4. Constatations:\n  4.1 Zones d'influence abords\n  4.2 Superstructures (Chaussée, Joints, Dispositifs retenue, Longrines/Corniches, Drainage)\n  4.3 Structure (Intrados, Culées, Piles, Appareils d'appui)\n5. Conclusion – Cotation IQOA\nAnnexe 1: Plan\nAnnexe 2: Relevé défauts\nAnnexe 3: Photos`
-    :`Génère un PVID format FERROVIAIRE SNCF conforme IN 1256.\nSTRUCTURE:\nPage de garde (titre, date, nom, type, commune, références SNCF, entreprise, suivi indices)\n1. Renseignements généraux (repérage, caractéristiques générales, techniques, admin)\n2. Historique ouvrage\n3. Déroulé visite (conditions, équipe, moyens, météo, difficultés)\n4. Constatations (environnement, structure, étanchéité, évacuation eaux)\n5. Synthèse et conclusions\nAnnexe 1: Photos\nAnnexe 2: Relevé avaries`;
-  let ctx='';
-  if(ouv){ctx=`\nOUVRAGE: ${ouv.nom} | ${ouv.type} | ${cL(ouv.client)} | IQOA ${ouv.iqoa} | Mat: ${ouv.mat||'?'} | ${ouv.annee||'?'} | ${ouv.long||'?'}m×${ouv.larg||'?'}m | Commune: ${ouv.commune||'?'} | Voie: ${ouv.voie||'?'}`;if(ouv.rem)ctx+=`\nREM: ${ouv.rem}`;}
-  if(ds.length){ctx+='\nDÉSORDRES:';ds.forEach(d=>{ctx+=`\n- ${d.type} (${d.sev}) ${d.elem||''} ${d.rem||''}`;});}
-  ctx+=`\nINSPECTION: ${date} | ${insp||'?'} | Moyens: ${moy||'?'} | Météo: ${meteo||'?'}`;
-  if(constat)ctx+=`\nCONSTATATIONS: ${constat}`;
-  const full=AIP+'\n\n'+tpl+'\n'+ctx+'\n\nRédige le rapport complet, structuré, professionnel.';
-  document.getElementById('dout').innerHTML=`<div class="prompt-box" id="pvt">${esc(full)}</div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-pri" onclick="cpT('pvt')">📋 Copier</button><span id="pvts" class="fs12 c-ok"></span></div>`;
+function sNT(){const n=document.getElementById('tn').value.trim();if(!n)return alert('Nom obligatoire');const cc={'Inspection':'var(--pri)','Expertise':'var(--acc)','Travaux':'var(--err)','Rapport':'var(--ok)','AO':'#8B5CF6','Sécurité':'#EC4899','Réunion':'#06B6D4','Autre':'var(--txt-d)'};const c=document.getElementById('tc').value;TASKS.push({id:uid(),name:n,cat:c,start:parseInt(document.getElementById('ts2').value)||0,dur:parseInt(document.getElementById('td').value)||5,color:cc[c]||'var(--pri)'});clM();R();}
+function rPlan(el){
+  const total=60;const pills=`<div style="display:flex;gap:8px;margin-bottom:20px"><span class="pill ${planView==='gantt'?'active':''}" onclick="planView='gantt';R()">📊 Gantt</span><span class="pill ${planView==='liste'?'active':''}" onclick="planView='liste';R()">📋 Liste</span></div>`;
+  if(planView==='liste')return void(el.innerHTML=`<div class="fade-in">${pills}<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">📅 Planning</div><button class="btn btn-pri" onclick="mNT()">+ Tâche</button></div>
+    ${TASKS.length?`<table><thead><tr><th>Tâche</th><th>Cat.</th><th>Début</th><th>Durée</th><th></th></tr></thead><tbody>${TASKS.map(t=>`<tr><td class="fw600">${t.name}</td><td><span class="tag" style="background:${t.color}20;color:${t.color}">${t.cat}</span></td><td class="fs12">J+${t.start}</td><td class="fs12">${t.dur}j</td><td><button class="btn btn-sm btn-ghost" style="color:var(--err)" onclick="TASKS=TASKS.filter(x=>x.id!==${t.id});R()">✕</button></td></tr>`).join('')}</tbody></table>`:'<div class="c-m" style="text-align:center;padding:32px">Aucune tâche.</div>'}</div></div>`);
+  el.innerHTML=`<div class="fade-in">${pills}<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="card-title">📅 Planning</div><button class="btn btn-pri" onclick="mNT()">+ Tâche</button></div>
+    ${TASKS.length?`<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:220px 1fr;min-width:800px"><div style="border-right:1px solid var(--brd)"><div style="height:32px;border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;font-size:11px;color:var(--txt-m);font-weight:700;text-transform:uppercase">Tâche</div>${TASKS.map(t=>`<div class="gantt-task">${t.name}</div>`).join('')}</div><div><div class="gantt-header">${['Fév.','Mars','Avr.'].map(m=>`<div class="gantt-month">${m}</div>`).join('')}</div>${TASKS.map(t=>`<div class="gantt-row"><div class="gantt-bar" style="left:${(t.start/total)*100}%;width:${Math.max(t.dur/total*100,2)}%;background:${t.color}">${t.cat}</div></div>`).join('')}</div></div></div>`:'<div class="c-m" style="text-align:center;padding:32px">Aucune tâche.</div>'}
+  </div></div>`;
 }
 
+// ═══════════════════ AI ASSISTANT ═══════════════════
+function rAI(el){
+  const ts=[{id:'general',l:'💬 Général'},{id:'pvid',l:'📋 PVID'},{id:'expertise',l:'🔬 Expertise'},{id:'memoire',l:'📝 Mémoire'},{id:'normes',l:'📚 Normes'},{id:'planning',l:'📅 Planning'}];
+  el.innerHTML=`<div class="fade-in"><div class="card" style="border-top:3px solid var(--pri)"><div class="card-title">🤖 Générateur de prompts</div><div class="c-m fs13" style="margin-bottom:16px">Sélectionnez, personnalisez, copiez dans votre IA. Le prompt intègre automatiquement toutes les données et évolutions de la plateforme.</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${ts.map(t=>`<span class="pill ${promptTopic===t.id?'active':''}" onclick="promptTopic='${t.id}';R()">${t.l}</span>`).join('')}</div>
+    <div class="grid-2" style="margin-bottom:16px"><div class="field"><label>Ouvrage</label><select class="input" id="ao"><option value="">— Aucun —</option>${OUV.map(o=>`<option value="${o.id}">${o.nom}</option>`).join('')}</select></div><div class="field"><label>Précisions</label><input class="input" id="ad" placeholder="Question ou détail..."></div></div>
+    <button class="btn btn-pri" onclick="genAI()">🔧 Générer</button><div id="aout" style="margin-top:16px"></div>
+  </div>${aiLinks()}</div>`;
+}
 function genAI(){
   const oid=document.getElementById('ao')?.value,det=document.getElementById('ad')?.value.trim()||'',ouv=oid?OUV.find(o=>o.id==oid):null;
-  let ctx='';if(ouv){const ds=DES.filter(d=>d.oid===ouv.id);ctx=`\nOUVRAGE: ${ouv.nom} (${ouv.type}, ${cL(ouv.client)}, IQOA ${ouv.iqoa})`;if(ds.length){ctx+='\nDÉSORDRES:';ds.forEach(d=>{ctx+=` ${d.type}(${d.sev})`;});}}
-  const m={general:det||'[Votre question]',pvid:'Rédige un PVID complet.',expertise:'Expertise pathologique'+(det?' : '+det:'')+'.',memoire:'Mémoire technique AO'+(det?' : '+det:'')+'.',normes:'Normes applicables'+(det?' : '+det:'')+'?',planning:'Planning travaux'+(det?' : '+det:'')+'.'};
-  const full=AIP+ctx+'\nMISSION: '+m[promptTopic];
-  document.getElementById('aout').innerHTML=`<div class="prompt-box" id="ait">${esc(full)}</div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-pri" onclick="cpT('ait')">📋 Copier</button><span id="aits" class="fs12 c-ok"></span></div>`;
+  let ctx='';if(ouv)ctx='\n'+ouvCtx(ouv);
+  const m={general:det||'[Votre question]',pvid:'Rédige un PVID complet.'+(det?' '+det:''),expertise:'Expertise pathologique.'+(det?' '+det:''),memoire:'Mémoire technique AO.'+(det?' '+det:''),normes:'Normes applicables ?'+(det?' '+det:''),planning:'Planning travaux.'+(det?' '+det:'')};
+  const full=AIP+ctx+'\n\nMISSION: '+m[promptTopic];
+  document.getElementById('aout').innerHTML=`<div class="prompt-box" id="ait">${esc(full)}</div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-pri btn-sm" onclick="cpT('ait')">📋 Copier</button><span id="aits" class="fs12 c-ok"></span></div>
+    ${aiInteractBox('ait','parseAIResp')}`;
+}
+function parseAIResp(id){
+  const resp=document.getElementById(id).value.trim();if(!resp)return alert('Collez la réponse');
+  document.getElementById(id.replace('_resp','_status')).textContent='✅ Réponse intégrée !';
+  const zone=document.getElementById(id).parentElement;
+  zone.insertAdjacentHTML('beforeend',`<div class="card" style="margin-top:16px;border-top:3px solid var(--ok)"><div class="card-title">📄 Réponse IA</div><div style="white-space:pre-line;font-size:13px;line-height:1.8">${esc(resp)}</div></div>`);
 }
 
+// ═══════════════════ INIT ═══════════════════
 bSB();nav('dashboard');
 </script>
 </body>
