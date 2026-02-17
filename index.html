@@ -8,6 +8,9 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%233B82F6'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-weight='900' font-family='sans-serif'>OA</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
 :root{--bg:#0B1120;--sidebar:#0F1729;--card:#141D2F;--card-h:#1A2540;--brd:#1E2A45;--brd-l:#2A3A5C;--pri:#3B82F6;--pri-d:#2563EB;--pri-g:rgba(59,130,246,0.15);--acc:#F59E0B;--acc-g:rgba(245,158,11,0.12);--err:#EF4444;--err-g:rgba(239,68,68,0.12);--ok:#10B981;--ok-g:rgba(16,185,129,0.12);--txt:#E2E8F0;--txt-m:#9DB1D0;--txt-d:#5E7499;--ff:'DM Sans','Segoe UI',sans-serif;--mono:'JetBrains Mono',monospace}
 *{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;overflow:hidden;width:100%}body{font-family:var(--ff);background:var(--bg);color:var(--txt)}
@@ -143,6 +146,7 @@ function shF(iid,lid){const fs=document.getElementById(iid).files,l=document.get
 function ouvCtx(o){
   let s=`Nom: ${o.nom} | Type: ${o.type} | Client: ${cL(o.client)} | IQOA: ${o.iqoa} | Mat: ${o.mat||'?'} | Année: ${o.annee||'?'} | Dim: ${o.long||'?'}m × ${o.larg||'?'}m | Commune: ${o.commune||'?'} | Voie: ${o.voie||'?'}`;
   if(o.rem)s+=` | Rem: ${o.rem}`;
+  if(o.extractedText)s+=`\n\nTEXTE EXTRAIT DU DOCUMENT IMPORTÉ (extrait):\n${o.extractedText.substring(0,2000)}`;
   const ds=DES.filter(d=>d.oid===o.id);
   if(ds.length){s+='\nDÉSORDRES:';ds.forEach(d=>{s+=`\n- ${d.type} (sév.${d.sev}) sur ${d.elem||'?'}`;if(d.evol?.length>1){const f=d.evol[0],l=d.evol.at(-1);s+=` | Évolution: ${f.val}${d.unit||''} (${f.date}) → ${l.val}${d.unit||''} (${l.date}) [+${((l.val/f.val-1)*100).toFixed(0)}%]`;}});}
   return s;
@@ -178,8 +182,178 @@ function rDash(el){
 }
 
 // ═══════════════════ OUVRAGES ═══════════════════
+// ═══════════════════ FILE READING ENGINE ═══════════════════
+let extractedText=''; // stores last extracted text globally
+
+async function readFileAsText(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  try{
+    if(ext==='docx'){
+      const ab=await file.arrayBuffer();
+      const res=await mammoth.extractRawText({arrayBuffer:ab});
+      return res.value;
+    }
+    if(ext==='pdf'&&window.pdfjsLib){
+      const ab=await file.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+      let txt='';
+      for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();txt+=tc.items.map(it=>it.str).join(' ')+'\n';}
+      return txt;
+    }
+    if(['txt','csv','xml','json'].includes(ext)){return await file.text();}
+    return `[Fichier ${file.name} — format ${ext} non lisible automatiquement]`;
+  }catch(e){return `[Erreur lecture ${file.name}: ${e.message}]`;}
+}
+
+async function readAllFiles(inputId){
+  const files=document.getElementById(inputId)?.files;
+  if(!files||!files.length)return '';
+  let all='';
+  for(const f of files){
+    const txt=await readFileAsText(f);
+    all+=`\n\n══ DOCUMENT: ${f.name} ══\n${txt}`;
+  }
+  return all.trim();
+}
+
+// Smart field auto-fill from extracted text
+function autoFillFromText(txt){
+  if(!txt)return;
+  const low=txt.toLowerCase();
+  // Try to detect and fill fields
+  const fields={};
+  // Name / identifier
+  const pkMatch=txt.match(/(?:PK|pk)\s*(\d+[\+\.]\d+)/);
+  const nomMatch=txt.match(/(?:Nom de l'ouvrage|nom\s*:\s*|ouvrage\s*:\s*)([^\n\r]{3,60})/i);
+  if(nomMatch&&!document.getElementById('on')?.value)document.getElementById('on').value=nomMatch[1].trim();
+  // Commune
+  const comMatch=txt.match(/(?:commune|localisation|ville)\s*:?\s*([A-ZÀ-Ü][a-zà-ü\-\s]{2,40})/i);
+  if(comMatch&&!document.getElementById('ox')?.value)document.getElementById('ox').value=comMatch[1].trim();
+  // Year
+  const yearMatch=txt.match(/(?:année de construction|date de construction|construit en|année\s*:)\s*(\d{4})/i)||txt.match(/(?:construction)\s*.*?(\d{4})/i);
+  if(yearMatch&&!document.getElementById('oy')?.value)document.getElementById('oy').value=yearMatch[1];
+  // Materials
+  const matPatterns=['béton armé','béton précontraint','acier','métallique','maçonnerie','mixte acier-béton','pierre','bois'];
+  const foundMats=matPatterns.filter(m=>low.includes(m));
+  if(foundMats.length&&!document.getElementById('om')?.value)document.getElementById('om').value=foundMats.join(', ');
+  // Type detection
+  const typeMap={'pont-rail':'Pont métallique','pont rail':'Pont métallique','pont route':'Pont béton armé','viaduc':'Viaduc mixte','passerelle':'Passerelle','tunnel':'Tunnel','mur de soutènement':'Mur de soutènement','pont métallique':'Pont métallique','pont en béton':'Pont béton armé','pont maçonnerie':'Pont maçonnerie'};
+  for(const[k,v]of Object.entries(typeMap)){if(low.includes(k)){const sel=document.getElementById('ot');if(sel){for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===v){sel.selectedIndex=i;break;}}}break;}}
+  // Client
+  if(low.includes('sncf')||low.includes('ferroviaire')||low.includes('rail')){const sel=document.getElementById('oc');if(sel)sel.value='ferroviaire';}
+  else if(low.includes('routier')||low.includes('autoroute')||low.includes('escota')||low.includes('cerema')){const sel=document.getElementById('oc');if(sel)sel.value='routier';}
+  // IQOA
+  const iqMatch=txt.match(/(?:IQOA|classe|cotation)\s*:?\s*(3U|3|2E|2|1)/i);
+  if(iqMatch){const sel=document.getElementById('oq');if(sel)sel.value=iqMatch[1].toUpperCase();}
+  // Voie
+  const voieMatch=txt.match(/(?:voie portée|voie franchie|route|ligne)\s*:?\s*([^\n\r]{3,50})/i);
+  if(voieMatch&&!document.getElementById('ov')?.value)document.getElementById('ov').value=voieMatch[1].trim();
+  // Length
+  const longMatch=txt.match(/(?:longueur|portée totale|longueur totale)\s*:?\s*([\d,\.]+)\s*m/i);
+  if(longMatch&&!document.getElementById('ol')?.value)document.getElementById('ol').value=longMatch[1].replace(',','.');
+  // Width
+  const largMatch=txt.match(/(?:largeur|largeur totale|largeur tablier)\s*:?\s*([\d,\.]+)\s*m/i);
+  if(largMatch&&!document.getElementById('ow')?.value)document.getElementById('ow').value=largMatch[1].replace(',','.');
+}
+
+async function handleOuvFiles(){
+  const zone=document.getElementById('ofl');
+  const files=document.getElementById('of').files;
+  zone.innerHTML='';
+  if(!files.length)return;
+  // Show files with loading
+  for(const f of files)zone.innerHTML+=`<div class="file-item">📄 ${f.name} <span class="c-d fs11">(${(f.size/1024).toFixed(0)}Ko)</span></div>`;
+  zone.innerHTML+=`<div id="read-status" style="margin-top:8px;padding:10px;background:var(--pri-g);border-radius:8px;border:1px solid rgba(59,130,246,0.2)"><span class="c-pri fs12 fw600">⏳ Lecture des documents en cours...</span></div>`;
+  // Read all files
+  extractedText=await readAllFiles('of');
+  if(!extractedText||extractedText.includes('[format')){
+    document.getElementById('read-status').innerHTML=`<span class="c-acc fs12 fw600">⚠️ Certains formats ne sont pas lisibles automatiquement. Utilisez l'IA pour compléter.</span>`;
+    return;
+  }
+  // Auto-fill fields
+  autoFillFromText(extractedText);
+  // Show success + extracted preview
+  const preview=extractedText.substring(0,500).replace(/\n/g,' ').trim();
+  document.getElementById('read-status').innerHTML=`<div class="c-ok fs12 fw700" style="margin-bottom:6px">✅ Document(s) lu(s) — champs remplis automatiquement</div>
+    <div class="fs11 c-m" style="margin-bottom:8px">Aperçu : ${esc(preview)}${extractedText.length>500?'...':''}</div>
+    <button class="btn btn-pri btn-sm" onclick="genSmartOuvPrompt()">🤖 Demander à l'IA de compléter les données manquantes</button>
+    <div id="smart-ai-zone"></div>`;
+}
+
+function genSmartOuvPrompt(){
+  const nom=document.getElementById('on').value||'?';
+  const type=document.getElementById('ot').value;
+  const textPreview=extractedText.substring(0,3000);
+  const p=AIP+`\n\nJ'ai lu automatiquement un document technique. Voici le texte extrait (extrait) :\n\n---\n${textPreview}\n---\n\nDonnées déjà remplies dans la fiche :\n- Nom: ${nom}\n- Type: ${type}\n- Matériaux: ${document.getElementById('om').value||'?'}\n- Année: ${document.getElementById('oy').value||'?'}\n- Commune: ${document.getElementById('ox').value||'?'}\n- Voie: ${document.getElementById('ov').value||'?'}\n- Longueur: ${document.getElementById('ol').value||'?'}\n- Largeur: ${document.getElementById('ow').value||'?'}\n\nÀ partir du document, COMPLÈTE toutes les données manquantes. Réponds EXACTEMENT dans ce format JSON (ne mets rien d'autre) :\n{"nom":"...","type":"Pont métallique|Pont béton armé|Pont maçonnerie|Viaduc mixte|Passerelle|Tunnel|Mur de soutènement","client":"ferroviaire|routier|fluvial|autre","iqoa":"NE|1|2|2E|3|3U","materiaux":"...","annee":"...","longueur":"...","largeur":"...","commune":"...","voie":"...","remarques":"nombre de travées, fondations, historique, particularités, désordres identifiés, etc."}`;
+  document.getElementById('smart-ai-zone').innerHTML=`<div class="prompt-box" id="smartp" style="margin-top:12px;max-height:250px">${esc(p)}</div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-pri btn-sm" onclick="cpT('smartp')">📋 Copier le prompt</button><span id="smartps" class="fs12 c-ok"></span></div>
+    ${aiLinks()}
+    <div style="margin-top:14px"><div class="fs12 c-m fw600" style="margin-bottom:6px">📥 Collez la réponse JSON de l'IA :</div>
+      <textarea class="ai-response-area" id="smart_resp" rows="4" placeholder='Collez ici la réponse JSON {"nom":"...", ...}'></textarea>
+      <button class="btn btn-acc" style="margin-top:8px" onclick="parseSmartOuvResp()">📥 Remplir automatiquement la fiche</button>
+      <span id="smart_status" class="fs12 c-ok" style="margin-left:8px"></span>
+    </div>`;
+}
+
+function parseSmartOuvResp(){
+  const raw=document.getElementById('smart_resp').value.trim();
+  if(!raw){alert('Collez la réponse de l\'IA');return;}
+  try{
+    // Try to extract JSON from response (AI might add text around it)
+    const jsonMatch=raw.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('Pas de JSON trouvé');
+    const d=JSON.parse(jsonMatch[0]);
+    // Fill fields
+    if(d.nom&&!document.getElementById('on').value)document.getElementById('on').value=d.nom;
+    if(d.type){const sel=document.getElementById('ot');for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===d.type){sel.selectedIndex=i;break;}}}
+    if(d.client){document.getElementById('oc').value=d.client;}
+    if(d.iqoa)document.getElementById('oq').value=d.iqoa;
+    if(d.materiaux)document.getElementById('om').value=d.materiaux;
+    if(d.annee)document.getElementById('oy').value=d.annee;
+    if(d.longueur)document.getElementById('ol').value=String(d.longueur).replace(',','.');
+    if(d.largeur)document.getElementById('ow').value=String(d.largeur).replace(',','.');
+    if(d.commune)document.getElementById('ox').value=d.commune;
+    if(d.voie)document.getElementById('ov').value=d.voie;
+    if(d.remarques){const rem=document.getElementById('or');rem.value=(rem.value?rem.value+'\n\n':'')+'--- Données IA ---\n'+d.remarques;}
+    document.getElementById('smart_status').textContent='✅ Fiche remplie automatiquement !';
+  }catch(e){
+    // Fallback: dump as remarks
+    const rem=document.getElementById('or');
+    rem.value=(rem.value?rem.value+'\n\n':'')+'--- Analyse IA ---\n'+raw;
+    document.getElementById('smart_status').textContent='⚠️ JSON non détecté, réponse ajoutée aux remarques.';
+  }
+}
+
+// Same for inspection file reading
+async function handleInspFiles(){
+  const zone=document.getElementById('ifl');
+  const files=document.getElementById('if2').files;
+  zone.innerHTML='';
+  for(const f of files)zone.innerHTML+=`<div class="file-item">📄 ${f.name} <span class="c-d fs11">(${(f.size/1024).toFixed(0)}Ko)</span></div>`;
+  extractedText=await readAllFiles('if2');
+  if(extractedText&&!extractedText.includes('[format'))zone.innerHTML+=`<div style="margin-top:8px;padding:8px;background:var(--ok-g);border-radius:6px"><span class="c-ok fs12 fw600">✅ Document(s) lu(s) (${extractedText.length} car.) — texte disponible pour l'IA</span></div>`;
+}
+
+// Same for document generation file reading
+async function handleDocFiles(){
+  const zone=document.getElementById('dfl');
+  const files=document.getElementById('dff').files;
+  zone.innerHTML='';
+  for(const f of files)zone.innerHTML+=`<div class="file-item">📄 ${f.name} <span class="c-d fs11">(${(f.size/1024).toFixed(0)}Ko)</span></div>`;
+  extractedText=await readAllFiles('dff');
+  if(extractedText&&!extractedText.includes('[format'))zone.innerHTML+=`<div style="margin-top:8px;padding:8px;background:var(--ok-g);border-radius:6px"><span class="c-ok fs12 fw600">✅ Document(s) lu(s) — texte intégré au prompt de génération</span></div>`;
+}
+
+// ═══════════════════ OUVRAGES ═══════════════════
 function mNO(){document.getElementById('mr').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)clM()"><div class="modal">
   <div class="modal-title"><span>🌉 Nouvel ouvrage</span><button class="modal-close" onclick="clM()">✕</button></div>
+  <div class="card" style="background:var(--bg);border-top:3px solid var(--acc);margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:10px">📎 Importer un document pour remplir automatiquement</div>
+    <div class="c-m fs12" style="margin-bottom:10px">Glissez un ancien PVID, rapport ou fiche ouvrage (DOCX, PDF) — les champs seront remplis automatiquement.</div>
+    <input type="file" id="of" multiple accept=".docx,.pdf,.txt,.csv" style="display:none" onchange="handleOuvFiles()">
+    <div class="file-attach" onclick="document.getElementById('of').click()">📁 Cliquer pour importer un document (DOCX, PDF, TXT)</div>
+    <div id="ofl"></div>
+  </div>
   <div class="grid-2"><div class="field"><label>Nom *</label><input class="input" id="on" placeholder="Ex: Pont de Pontorson (PK 342+120)"></div>
     <div class="field"><label>Type *</label><select class="input" id="ot"><option>Pont métallique</option><option>Pont béton armé</option><option>Pont maçonnerie</option><option>Viaduc mixte</option><option>Passerelle</option><option>Tunnel</option><option>Mur de soutènement</option></select></div>
     <div class="field"><label>Client</label><select class="input" id="oc">${CL.map(c=>`<option value="${c.id}">${c.i} ${c.l}</option>`).join('')}</select></div>
@@ -188,35 +362,28 @@ function mNO(){document.getElementById('mr').innerHTML=`<div class="modal-overla
   <div class="grid-3"><div class="field"><label>Année</label><input class="input" id="oy" placeholder="1892"></div><div class="field"><label>Longueur (m)</label><input class="input" id="ol" placeholder="45.5"></div><div class="field"><label>Largeur (m)</label><input class="input" id="ow" placeholder="8.2"></div></div>
   <div class="grid-2"><div class="field"><label>Commune</label><input class="input" id="ox"></div><div class="field"><label>Voie</label><input class="input" id="ov" placeholder="LGV / RD976..."></div></div>
   <div class="field"><label>Remarques</label><textarea class="input" id="or" rows="3" placeholder="Travées, fondations, particularités..."></textarea></div>
-  <div class="field"><label>📎 Pièces jointes (plans, photos, anciens rapports)</label><input type="file" id="of" multiple style="display:none" onchange="shF('of','ofl')"><div class="file-attach" onclick="document.getElementById('of').click()">📁 Cliquer pour ajouter</div><div id="ofl"></div></div>
-  <div class="ai-box"><div class="ai-box-title">🤖 Compléter avec l'IA</div>
-    <div class="c-m fs12" style="margin-bottom:10px">L'IA peut compléter les données manquantes à partir de vos informations ou pièces jointes.</div>
-    <button class="btn btn-pri btn-sm" onclick="genOuvPrompt()">🔧 Générer le prompt de complétion</button>
-    <div id="ouv-ai-zone"></div>
-  </div>
   <div style="display:flex;gap:10px;margin-top:20px"><button class="btn btn-pri" onclick="sNO()">✅ Créer l'ouvrage</button><button class="btn btn-ghost" onclick="clM()">Annuler</button></div>
-</div></div>`;}
+</div></div>`;extractedText='';}
 
-function genOuvPrompt(){
-  const nom=document.getElementById('on').value||'[nom à compléter]';
-  const type=document.getElementById('ot').value;
-  const files=[...document.getElementById('of').files].map(f=>f.name);
-  const p=AIP+`\n\nJe crée une fiche ouvrage. Complète les données manquantes et propose des informations techniques pertinentes.\nDonnées actuelles:\n- Nom: ${nom}\n- Type: ${type}\n- Matériaux: ${document.getElementById('om').value||'?'}\n- Année: ${document.getElementById('oy').value||'?'}\n- Commune: ${document.getElementById('ox').value||'?'}${files.length?'\n- Documents joints: '+files.join(', '):''}
-\nRéponds avec ces informations COMPLÉTÉES au format structuré:\n- Matériaux probables:\n- Nombre de travées probable:\n- Type de fondations probable:\n- Normes applicables:\n- Désordres typiques à surveiller pour ce type d'ouvrage:\n- Recommandations d'inspection:\n- Toute autre information technique utile:`;
-  document.getElementById('ouv-ai-zone').innerHTML=`<div class="prompt-box" id="ouvp" style="margin-top:12px">${esc(p)}</div>
-    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-pri btn-sm" onclick="cpT('ouvp')">📋 Copier</button><span id="ouvps" class="fs12 c-ok"></span></div>
-    ${aiInteractBox('ouvp','parseOuvResp')}`;
+function sNO(){const n=document.getElementById('on').value.trim();if(!n)return alert('Nom obligatoire');OUV.push({id:uid(),nom:n,type:document.getElementById('ot').value,client:document.getElementById('oc').value,iqoa:document.getElementById('oq').value,mat:document.getElementById('om').value,annee:document.getElementById('oy').value,long:document.getElementById('ol').value,larg:document.getElementById('ow').value,commune:document.getElementById('ox').value,voie:document.getElementById('ov').value,rem:document.getElementById('or').value,files:[...document.getElementById('of').files].map(f=>f.name),extractedText:extractedText||'',created:new Date().toISOString().slice(0,10)});clM();R();}
+
+async function reimportOuv(oid){
+  const o=OUV.find(x=>x.id===oid);if(!o)return;
+  const file=document.getElementById('reimport').files[0];if(!file)return;
+  const txt=await readFileAsText(file);
+  if(!txt)return;
+  o.extractedText=(o.extractedText||'')+'\n\n══ '+file.name+' ══\n'+txt;
+  o.files=(o.files||[]);o.files.push(file.name);
+  // Auto-fill missing fields
+  const low=txt.toLowerCase();
+  if(!o.mat){const mats=['béton armé','béton précontraint','acier','métallique','maçonnerie','mixte','pierre','bois'].filter(m=>low.includes(m));if(mats.length)o.mat=mats.join(', ');}
+  if(!o.annee){const y=txt.match(/(?:année|construit|construction)\s*:?\s*(\d{4})/i);if(y)o.annee=y[1];}
+  if(!o.commune){const c=txt.match(/(?:commune|ville|localisation)\s*:?\s*([A-ZÀ-Ü][a-zà-ü\-\s]{2,30})/i);if(c)o.commune=c[1].trim();}
+  if(!o.voie){const v=txt.match(/(?:voie|route|ligne)\s*:?\s*([^\n\r]{3,40})/i);if(v)o.voie=v[1].trim();}
+  const iq=txt.match(/(?:IQOA|cotation|classe)\s*:?\s*(3U|3|2E|2|1)/i);if(iq&&o.iqoa==='NE')o.iqoa=iq[1].toUpperCase();
+  alert('✅ Document lu et données enrichies ('+txt.length+' caractères extraits)');
+  R();
 }
-
-function parseOuvResp(id){
-  const resp=document.getElementById(id).value.trim();
-  if(!resp){alert('Collez d\'abord la réponse de l\'IA');return;}
-  const rem=document.getElementById('or');
-  rem.value=(rem.value?rem.value+'\n\n':'')+'--- Données complétées par IA ---\n'+resp;
-  document.getElementById(id.replace('_resp','_status')).textContent='✅ Réponse intégrée dans les remarques !';
-}
-
-function sNO(){const n=document.getElementById('on').value.trim();if(!n)return alert('Nom obligatoire');OUV.push({id:uid(),nom:n,type:document.getElementById('ot').value,client:document.getElementById('oc').value,iqoa:document.getElementById('oq').value,mat:document.getElementById('om').value,annee:document.getElementById('oy').value,long:document.getElementById('ol').value,larg:document.getElementById('ow').value,commune:document.getElementById('ox').value,voie:document.getElementById('ov').value,rem:document.getElementById('or').value,files:[...document.getElementById('of').files].map(f=>f.name),created:new Date().toISOString().slice(0,10)});clM();R();}
 
 function rOuv(el){
   if(selOuv){const o=OUV.find(x=>x.id===selOuv);if(!o){selOuv=null;return rOuv(el);}const ds=DES.filter(d=>d.oid===o.id);
@@ -224,6 +391,10 @@ function rOuv(el){
       <div class="card"><div style="display:flex;justify-content:space-between"><div><div style="font-size:20px;font-weight:800;margin-bottom:6px">${o.nom}</div><div class="c-m">${o.type} • ${cI(o.client)} ${cL(o.client)}</div></div>${iqB(o.iqoa)}</div>
         <div class="grid-3" style="margin-top:20px">${[['Matériaux',o.mat||'–'],['Année',o.annee||'–'],['Dimensions',(o.long||'?')+'m × '+(o.larg||'?')+'m'],['Commune',o.commune||'–'],['Voie',o.voie||'–'],['Créé',o.created]].map(([l,v])=>`<div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--brd)"><div class="fs11 c-m fw600" style="text-transform:uppercase">${l}</div><div class="fs13 fw600" style="margin-top:4px">${v}</div></div>`).join('')}</div>
         ${o.rem?`<div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--brd)"><div class="fs11 c-m fw600">REMARQUES</div><div class="fs13" style="margin-top:4px;white-space:pre-line">${o.rem}</div></div>`:''}
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <input type="file" id="reimport" accept=".docx,.pdf,.txt" style="display:none" onchange="reimportOuv(${o.id})">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('reimport').click()">📎 Importer un document pour enrichir</button>
+        </div>
       </div>
       <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="card-title" style="margin:0">⚠️ Désordres (${ds.length})</div><button class="btn btn-pri btn-sm" onclick="mND(${o.id})">+ Ajouter</button></div>
         ${ds.length?`<table><thead><tr><th>Type</th><th>Élément</th><th>Sévérité</th><th>Mesures</th><th></th></tr></thead><tbody>${ds.map(d=>`<tr class="clickable" onclick="selDes=${d.id};nav('desordres')"><td class="fw600">${d.type}</td><td class="c-m">${d.elem||'–'}</td><td>${iqB(d.sev)}</td><td class="fs12">${d.evol?.length||0} pts</td><td class="c-pri fs12">Voir ↗</td></tr>`).join('')}</tbody></table>`:'<div class="c-m fs13" style="text-align:center;padding:20px">Aucun désordre</div>'}
@@ -240,7 +411,7 @@ function mNI(){if(!OUV.length)return alert('Créez d\'abord un ouvrage');documen
     <div class="field"><label>Type</label><select class="input" id="it"><option>PVID</option><option>IDP</option><option>VST</option><option>Expertise</option><option>Inspection subaquatique</option><option>Surveillance renforcée</option></select></div></div>
   <div class="grid-2"><div class="field"><label>Date</label><input type="date" class="input" id="id" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Inspecteur(s)</label><input class="input" id="ii"></div></div>
   <div class="field"><label>Moyens</label><input class="input" id="im" placeholder="Nacelle, drone..."></div>
-  <div class="field"><label>📎 Documents</label><input type="file" id="if2" multiple style="display:none" onchange="shF('if2','ifl')"><div class="file-attach" onclick="document.getElementById('if2').click()">📁 Ajouter</div><div id="ifl"></div></div>
+  <div class="field"><label>📎 Documents</label><input type="file" id="if2" multiple accept=".docx,.pdf,.txt" style="display:none" onchange="handleInspFiles()"><div class="file-attach" onclick="document.getElementById('if2').click()">📁 Importer documents (DOCX, PDF)</div><div id="ifl"></div></div>
   <div style="display:flex;gap:10px;margin-top:20px"><button class="btn btn-pri" onclick="sNI()">✅ Créer</button><button class="btn btn-ghost" onclick="clM()">Annuler</button></div>
 </div></div>`;}
 function sNI(){const s=[...document.getElementById('io').selectedOptions].map(o=>parseInt(o.value));if(!s.length)return alert('Sélectionnez un ouvrage');INS.push({id:uid(),ouvs:s,type:document.getElementById('it').value,date:document.getElementById('id').value,insp:document.getElementById('ii').value,moyens:document.getElementById('im').value});clM();R();}
@@ -394,7 +565,7 @@ function rDocs(el){
       <div class="grid-2"><div class="field"><label>Date</label><input type="date" class="input" id="dd" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Rédacteur(s)</label><input class="input" id="di2" placeholder="Noms"></div></div>
       ${docType==='pvid'?`<div class="grid-2"><div class="field"><label>Moyens</label><input class="input" id="dm" placeholder="Nacelle, drone..."></div><div class="field"><label>Météo</label><input class="input" id="dw" placeholder="Temps clair, 12°C"></div></div>`:''}
       <div class="field"><label>Constatations / Contexte</label><textarea class="input" id="dc" rows="4" placeholder="${docType==='memoire'?'Objet du marché, exigences, contraintes...':'Décrivez les désordres, localisations, mesures...'}"></textarea></div>
-      <div class="field"><label>📎 Documents annexes</label><input type="file" id="dff" multiple style="display:none" onchange="shF('dff','dfl')"><div class="file-attach" onclick="document.getElementById('dff').click()">📁 Ajouter</div><div id="dfl"></div></div>
+      <div class="field"><label>📎 Documents annexes (rapports, photos, relevés)</label><input type="file" id="dff" multiple accept=".docx,.pdf,.txt" style="display:none" onchange="handleDocFiles()"><div class="file-attach" onclick="document.getElementById('dff').click()">📁 Importer documents (DOCX, PDF) — texte extrait automatiquement</div><div id="dfl"></div></div>
       <button class="btn btn-pri" onclick="genDoc()" style="margin-top:8px">🤖 Générer avec l'IA</button>
       <div id="dout" style="margin-top:16px"></div>
     </div></div>`;
@@ -417,7 +588,7 @@ function genDoc(){
   } else {
     tpl=`Génère un MÉMOIRE TECHNIQUE pour appel d'offres.\nSTRUCTURE: 1. Présentation entreprise 2. Compréhension mission 3. Méthodologie détaillée 4. Moyens humains et matériels 5. Planning (Gantt) 6. PPSPS/Sécurité 7. PAQ/Qualité 8. Références normatives`;
   }
-  const full=AIP+'\n\n'+tpl+'\n\nDONNÉES PLATEFORME:\n'+ctx+'\nDate: '+date+' | Rédacteur: '+(red||'?')+(constat?'\nCONSTATATIONS: '+constat:'')+'\n\nRédige le document complet, structuré, professionnel. INTÈGRE l\'évolution des désordres s\'il y en a.';
+  const full=AIP+'\n\n'+tpl+'\n\nDONNÉES PLATEFORME:\n'+ctx+'\nDate: '+date+' | Rédacteur: '+(red||'?')+(constat?'\nCONSTATATIONS: '+constat:'')+(extractedText?'\n\nTEXTE EXTRAIT DES DOCUMENTS JOINTS:\n'+extractedText.substring(0,4000):'')+'\n\nRédige le document complet, structuré, professionnel. INTÈGRE l\'évolution des désordres s\'il y en a.';
   document.getElementById('dout').innerHTML=`<div class="prompt-box" id="docp">${esc(full)}</div>
     <div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-pri btn-sm" onclick="cpT('docp')">📋 Copier</button><span id="docps" class="fs12 c-ok"></span></div>
     ${aiInteractBox('docp','parseDocResp')}`;
